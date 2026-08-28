@@ -49,7 +49,7 @@ Files in `design_reference/` are **design references created in HTML** — inter
 - Board row tap → drawer (desktop overlay slide, mobile bottom sheet). Never navigate away from the board.
 - Sort tabs re-rank client-side; sorted column header tints purple-primary; ensemble sort shows TierBreaks.
 - All motion: **200ms ease, color/background only.** No entry animations, bounces, or parallax. Hover (desktop): row bg rgba(196,149,244,.07); links → purple-primary; cards gain shadow-md.
-- Draft clock drives everything on the Command Center; panic overlay auto-fires and auto-drafts the recommendation at 0 (confirm-first is a product decision — the prototype auto-picks).
+- Draft clock drives everything on the Command Center; the panic overlay auto-fires at `myTurn && timer ≤ 30` and **highlights the recommended pick only — it never submits a pick to Sleeper** (product decision 2026-08-26, LS-56: the app is display-only; picks are made in the Sleeper app). The prototype's auto-pick at 0 is not to be built. The timer comes from the API (`clock.pick_deadline`, fixed per pick — tick it locally; see the backend `docs/api/GUIDE.md` Workflow 1).
 - Garage: slider changes are local until "Re-run backtest"; the button shows a fitting state, then Δ chips appear on the scoreboard.
 - Season Monitor: week bar tap swaps the box-score card. No other state.
 
