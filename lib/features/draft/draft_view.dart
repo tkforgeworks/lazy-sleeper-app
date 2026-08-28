@@ -122,3 +122,115 @@ String? injuryFlag(String? status) => switch (status) {
   'Questionable' => 'Q',
   _ => 'OUT',
 };
+
+/// The backend's best pick: rows arrive in `pick_score` order.
+DraftRow? recommended(DraftState s) => s.rows.isEmpty ? null : s.rows.first;
+
+/// Up to two fallbacks for "if he's gone".
+List<DraftRow> alternates(DraftState s) =>
+    s.rows.length > 1 ? s.rows.sublist(1, s.rows.length.clamp(1, 3)) : const [];
+
+/// Exactly one line of reasoning, composed from the row's signals — the
+/// numbers are the backend's, only the sentence is ours.
+String whyLine(DraftRow r) {
+  final parts = <String>[
+    if (r.tier case final t?) 'T$t ${r.position}' else r.position,
+    '${fmtPts(r.vorp)} VORP',
+    if (r.survival case final s?)
+      '${(s * 100).round()}% to survive to your next pick',
+  ];
+  final tail = <String>[
+    if (r.cliff) 'Last of the tier.',
+    if (r.run) '${r.position} run on.',
+    if (r.adpFlag == 'value' && r.adpDelta != null)
+      'Falling: ADP ${fmtAdp(r.adp)}.',
+  ];
+  return '${parts.join(', ')}.${tail.isEmpty ? '' : ' ${tail.join(' ')}'}';
+}
+
+String fmtAdp(double? v) => v == null ? dash : v.toStringAsFixed(1);
+
+enum AlertSeverity { warning, info, success, error }
+
+/// One card in the rail (chip on mobile).
+class DraftAlert {
+  const DraftAlert({
+    required this.severity,
+    required this.title,
+    required this.body,
+  });
+
+  final AlertSeverity severity;
+  final String title;
+  final String body;
+}
+
+/// How far down the table alerts look; deeper rows are not decisions.
+const alertDepth = 12;
+
+/// Alerts from the backend's signals on the top rows, in a fixed order:
+/// tier cliff (warning), positional run (info), value faller (success),
+/// injury watch (error). At most one of each.
+List<DraftAlert> alertsFor(DraftState s) {
+  final top = s.rows.take(alertDepth).toList();
+  final alerts = <DraftAlert>[];
+
+  final cliff = top.where((r) => r.cliff).firstOrNull;
+  if (cliff != null) {
+    final gap = cliff.gapToNext == null
+        ? ''
+        : ' ${fmtPts(cliff.gapToNext!)} pts to the next ${cliff.position}.';
+    alerts.add(
+      DraftAlert(
+        severity: AlertSeverity.warning,
+        title: 'Tier cliff at ${cliff.position}',
+        body:
+            '${cliff.name} is the last T${cliff.tier ?? '?'} '
+            '${cliff.position} on the board.$gap',
+      ),
+    );
+  }
+
+  final run = top.where((r) => r.run).firstOrNull;
+  if (run != null) {
+    alerts.add(
+      DraftAlert(
+        severity: AlertSeverity.info,
+        title: '${run.position} run',
+        body:
+            '${run.runCount} ${run.position}s went in the last few picks. '
+            '${run.name} is the best one left.',
+      ),
+    );
+  }
+
+  final fallers = top.where(
+    (r) => r.adpFlag == 'value' && r.adpDelta != null && r.adp != null,
+  );
+  if (fallers.isNotEmpty) {
+    final f = fallers.reduce((a, b) => a.adpDelta! >= b.adpDelta! ? a : b);
+    alerts.add(
+      DraftAlert(
+        severity: AlertSeverity.success,
+        title: '${f.name} is falling',
+        body:
+            'ADP ${fmtAdp(f.adp)}, still here at pick ${s.clock.currentPick} '
+            '(+${fmtAdp(f.adpDelta)}).',
+      ),
+    );
+  }
+
+  final hurt = top.where((r) => r.injuryStatus != null).firstOrNull;
+  if (hurt != null) {
+    alerts.add(
+      DraftAlert(
+        severity: AlertSeverity.error,
+        title: 'Injury watch',
+        body:
+            '${hurt.name} is ${hurt.injuryStatus!.toLowerCase()} and ranked '
+            '#${hurt.rank}. Price the risk in.',
+      ),
+    );
+  }
+  return alerts;
+}

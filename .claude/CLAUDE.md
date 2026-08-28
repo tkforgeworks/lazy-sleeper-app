@@ -6,17 +6,20 @@ never reimplements logic. Keep this file in sync as decisions land.
 
 ## Repo state (2026-08-28)
 
-- Flutter app exists (LS-39 increment 1): scaffold, theme, API client, Big Board screen, API-address
-  setting, and a Draft screen that drives the backend draft runner (`GET /draft`,
-  `POST /draft/{id}/start|stop`; the draft id is remembered in prefs). Increment 2 (live companion view)
-  is landing in slices under the same ticket: **2a** = `/draft/{id}/state` models (`lib/api/models/
+- Flutter app (LS-39): scaffold, theme, API client, Big Board screen, API-address setting, draft runner
+  controls (`GET /draft`, `POST /draft/{id}/start|stop`; the draft id is remembered in prefs), and the live
+  Draft Command Center. Increment 2 landed in three slices (PRs #6, #7, #8 on 2026-08-28): **2a** = `/draft/{id}/state` models (`lib/api/models/
   draft_state.dart`), `draftLiveProvider` (polls every 2 s, swaps `DraftLive.state` only when
   `recompute.seq` moves, 404 → `notRunning`, other failures keep the last good state), and a LIVE STATE
   strip on the Draft screen; **2b** = the Command Center layout (`lib/features/draft/widgets/`: header with
   until-you box, roster strip, best-available table/list, pick ticker; runner controls move to a dialog behind
   the header's `runner` button once `/state` has answered; `draft_view.dart` holds the pure label/seat
-  helpers); **2c** = pick clock ticking from `clock.pick_deadline`, RecommendationCard live
-  state, panic highlight, alert cards. Fixtures for every phase live in `assets/fixtures/draft_state_*.json`
+  helpers); **2c** = `draft_clock.dart` (`clockNowProvider` ticks 1 s while watched, `nowProvider` is the
+  test seam; `secondsRemaining` = deadline − now, the one redraw exempt from the `seq` rule), `TimerBlock` in
+  the header, `RecommendationCard` (rows.first, one `whyLine` from the row's signals, two alternates; forge
+  border at my turn), `PanicOverlay` (my turn && ≤ 30 s, forge-gradient name, **highlight only — no submit**,
+  tap dismisses for that pick via `panicDismissedProvider`), and `alertsFor` (tier cliff / run / value faller /
+  injury from the top 12 rows, one each) as rail cards or mobile chips. Fixtures for every phase live in `assets/fixtures/draft_state_*.json`
   (`FixtureLazySleeperApi.draftState*`), captured from mocks on 2026-08-28. Sleeper delivers mock CPU picks
   out of order (`picks_made` 3 with `current_pick` 7) — render from `current_pick`/`on_the_clock` only.
 - Backend `lazy serve` runs on port **8000**, v0.1.2: LS-56 (`pick_deadline`, `on_the_clock_team_name`,

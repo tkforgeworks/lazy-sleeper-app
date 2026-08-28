@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lazy_sleeper_app/api/fixture_api.dart';
 import 'package:lazy_sleeper_app/api/lazy_sleeper_api.dart';
@@ -106,6 +107,7 @@ Future<SharedPreferences> pumpApp(
   Size size, {
   LazySleeperApi? api,
   Map<String, Object> prefs = const {},
+  List<Override> overrides = const [],
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -120,6 +122,7 @@ Future<SharedPreferences> pumpApp(
         sharedPreferencesProvider.overrideWithValue(store),
         appLogProvider.overrideWithValue(log),
         lazySleeperApiProvider.overrideWithValue(api ?? FakeLazySleeperApi()),
+        ...overrides,
       ],
       child: const LazySleeperApp(),
     ),

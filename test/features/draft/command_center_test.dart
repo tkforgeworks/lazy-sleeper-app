@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lazy_sleeper_app/api/fixture_api.dart';
 import 'package:lazy_sleeper_app/api/models/draft_state.dart';
+import 'package:lazy_sleeper_app/features/draft/draft_clock.dart';
 import 'package:lazy_sleeper_app/app/widgets/atoms.dart';
 import 'package:lazy_sleeper_app/features/draft/draft_runner_providers.dart';
 import 'package:lazy_sleeper_app/features/draft/widgets/best_available.dart';
@@ -12,12 +15,25 @@ import '../../support.dart';
 import 'draft_screen_test.dart' show openDraft;
 
 /// The app on the Draft tab with `/state` answering [state].
-Future<void> pumpLive(WidgetTester tester, Size size, DraftState state) async {
+///
+/// The clock is frozen 95 s before the pick deadline unless [overrides]
+/// pins [nowProvider] itself — the captures' deadlines are long past.
+Future<void> pumpLive(
+  WidgetTester tester,
+  Size size,
+  DraftState state, {
+  List<Override>? overrides,
+}) async {
+  final deadline = state.clock.pickDeadline;
+  final frozen = deadline?.subtract(const Duration(seconds: 95));
   await pumpApp(
     tester,
     size,
     api: FakeLazySleeperApi(onState: (id, position, limit) async => state),
     prefs: {DraftId.prefsKey: state.draftId},
+    overrides:
+        overrides ??
+        [if (frozen != null) nowProvider.overrideWithValue(() => frozen)],
   );
   if (size == mobileSize) {
     await tester.tap(
@@ -57,14 +73,15 @@ void main() {
     // Best available in served (pick_score) order, with signals.
     expect(find.byType(BestAvailableTable), findsOneWidget);
     expect(find.text('SURVIVAL → pick 23'), findsOneWidget);
-    final first = find.text('Nico Collins');
-    expect(first, findsOneWidget);
+    // The top pick shows in the recommendation card and as row 1.
+    expect(find.text('Nico Collins'), findsNWidgets(2));
+    final first = find.text('Nico Collins').last;
     expect(find.text('HOU · WR8 · bye 8'), findsOneWidget);
     expect(find.byType(SurvivalBar), findsWidgets);
     expect(find.text('RUN'), findsWidgets);
     expect(
       tester.getTopLeft(first).dy,
-      lessThan(tester.getTopLeft(find.text(myTurn.rows[1].name)).dy),
+      lessThan(tester.getTopLeft(find.text(myTurn.rows[1].name).last).dy),
     );
 
     // Ticker, most recent first.
@@ -127,7 +144,7 @@ void main() {
     expect(find.text('BEST AVAILABLE'), findsOneWidget);
     expect(find.byType(BestAvailableTable), findsNothing);
     expect(find.byType(BestAvailableList), findsOneWidget);
-    expect(find.text('Nico Collins'), findsOneWidget);
+    expect(find.text('Nico Collins'), findsNWidgets(2), reason: 'card + row');
     expect(find.byType(RosterSlotChip), findsWidgets);
   });
 }
