@@ -12,7 +12,9 @@ abstract class LsColorsDark {
   static const purpleDark = Color(0xFFD9B5FD); // hover shift on dark
   static const purpleTint = Color(0xFF372367);
   static const forgeYellow = Color(0xFFFBDF19);
-  static const forgeOrange = Color(0xFFF9A03F); // ForgeModel accent — never status
+  static const forgeOrange = Color(
+    0xFFF9A03F,
+  ); // ForgeModel accent — never status
   static const forgeRed = Color(0xFFF4553F);
   static const forgeTint = Color(0xFF3A2410);
   static const forgeText = Color(0xFFFBDF19);
@@ -33,8 +35,10 @@ abstract class LsColorsDark {
   static const infoPrimary = Color(0xFF38BDF8);
   static const infoLight = Color(0xFF082F49);
   static const infoText = Color(0xFF7DD3FC);
+
   /// Ink used on top of purplePrimary fills (buttons, "until you" box).
   static const onPurple = Color(0xFF141327);
+
   /// Row divider / subtle tracks.
   static const divider = Color(0x59334155); // rgba(51,65,85,.35)
   static const track = Color(0x80334155); // rgba(51,65,85,.5)
@@ -93,13 +97,16 @@ abstract class LsSources {
 abstract class LsGradients {
   /// Logo hammer + panic-mode name ONLY.
   static const forge = LinearGradient(
-    begin: Alignment.centerLeft, end: Alignment.centerRight,
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
     colors: [Color(0xFFFBDF19), Color(0xFFF68F25), Color(0xFFEE3423)],
     stops: [0.0, 0.52, 1.0],
   );
+
   /// Logo anvil ONLY.
   static const anvil = LinearGradient(
-    begin: Alignment.topCenter, end: Alignment.bottomCenter,
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
     colors: [Color(0xFF9632F3), Color(0xFF8532D6), Color(0xFF601BBC)],
     stops: [0.0, 0.52, 1.0],
   );
@@ -126,20 +133,81 @@ abstract class LsFonts {
 
 /// Text styles from the designs (colors applied at call site).
 abstract class LsText {
-  static const screenTitle = TextStyle(fontFamily: LsFonts.header, fontSize: 15, fontWeight: FontWeight.w700);
-  static const drawerName = TextStyle(fontFamily: LsFonts.header, fontSize: 20, fontWeight: FontWeight.w600);
-  static const recName = TextStyle(fontFamily: LsFonts.header, fontSize: 26, fontWeight: FontWeight.w700, height: 1.15);
-  static const panicName = TextStyle(fontFamily: LsFonts.header, fontSize: 64, fontWeight: FontWeight.w800, height: 1.05);
-  static const rowTitle = TextStyle(fontFamily: LsFonts.header, fontSize: 12.5, fontWeight: FontWeight.w500);
-  static const navPill = TextStyle(fontFamily: LsFonts.header, fontSize: 12.5, fontWeight: FontWeight.w500);
-  static const button = TextStyle(fontFamily: LsFonts.header, fontSize: 14, fontWeight: FontWeight.w600);
-  static const dataCell = TextStyle(fontFamily: LsFonts.code, fontSize: 12, fontWeight: FontWeight.w400);
-  static const dataCellBold = TextStyle(fontFamily: LsFonts.code, fontSize: 12, fontWeight: FontWeight.w600);
-  static const statValue = TextStyle(fontFamily: LsFonts.code, fontSize: 21, fontWeight: FontWeight.w700);
-  static const timer = TextStyle(fontFamily: LsFonts.code, fontSize: 32, fontWeight: FontWeight.w700, height: 1.1);
-  static const microLabel = TextStyle(fontFamily: LsFonts.code, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 0.8);
-  static const caption = TextStyle(fontFamily: LsFonts.code, fontSize: 10.5, fontWeight: FontWeight.w400);
-  static const aside = TextStyle(fontFamily: LsFonts.body, fontSize: 13, fontStyle: FontStyle.italic, height: 1.5);
+  static const screenTitle = TextStyle(
+    fontFamily: LsFonts.header,
+    fontSize: 15,
+    fontWeight: FontWeight.w700,
+  );
+  static const drawerName = TextStyle(
+    fontFamily: LsFonts.header,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+  );
+  static const recName = TextStyle(
+    fontFamily: LsFonts.header,
+    fontSize: 26,
+    fontWeight: FontWeight.w700,
+    height: 1.15,
+  );
+  static const panicName = TextStyle(
+    fontFamily: LsFonts.header,
+    fontSize: 64,
+    fontWeight: FontWeight.w800,
+    height: 1.05,
+  );
+  static const rowTitle = TextStyle(
+    fontFamily: LsFonts.header,
+    fontSize: 12.5,
+    fontWeight: FontWeight.w500,
+  );
+  static const navPill = TextStyle(
+    fontFamily: LsFonts.header,
+    fontSize: 12.5,
+    fontWeight: FontWeight.w500,
+  );
+  static const button = TextStyle(
+    fontFamily: LsFonts.header,
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+  );
+  static const dataCell = TextStyle(
+    fontFamily: LsFonts.code,
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+  );
+  static const dataCellBold = TextStyle(
+    fontFamily: LsFonts.code,
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+  );
+  static const statValue = TextStyle(
+    fontFamily: LsFonts.code,
+    fontSize: 21,
+    fontWeight: FontWeight.w700,
+  );
+  static const timer = TextStyle(
+    fontFamily: LsFonts.code,
+    fontSize: 32,
+    fontWeight: FontWeight.w700,
+    height: 1.1,
+  );
+  static const microLabel = TextStyle(
+    fontFamily: LsFonts.code,
+    fontSize: 10,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.8,
+  );
+  static const caption = TextStyle(
+    fontFamily: LsFonts.code,
+    fontSize: 10.5,
+    fontWeight: FontWeight.w400,
+  );
+  static const aside = TextStyle(
+    fontFamily: LsFonts.body,
+    fontSize: 13,
+    fontStyle: FontStyle.italic,
+    height: 1.5,
+  );
 }
 
 /// Motion: 200ms ease, color/background only. No entry animations.
@@ -150,35 +218,35 @@ const lsCurve = Curves.ease;
 const lsDesktopBreakpoint = 1024.0;
 
 ThemeData lsDarkTheme() => ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: LsColorsDark.background,
-      colorScheme: const ColorScheme.dark(
-        primary: LsColorsDark.purplePrimary,
-        onPrimary: LsColorsDark.onPurple,
-        secondary: LsColorsDark.forgeOrange,
-        surface: LsColorsDark.backgroundLight,
-        onSurface: LsColorsDark.textPrimary,
-        error: LsColorsDark.errorPrimary,
-        outline: LsColorsDark.border,
-      ),
-      dividerColor: LsColorsDark.divider,
-      fontFamily: LsFonts.header,
-      useMaterial3: true,
-    );
+  brightness: Brightness.dark,
+  scaffoldBackgroundColor: LsColorsDark.background,
+  colorScheme: const ColorScheme.dark(
+    primary: LsColorsDark.purplePrimary,
+    onPrimary: LsColorsDark.onPurple,
+    secondary: LsColorsDark.forgeOrange,
+    surface: LsColorsDark.backgroundLight,
+    onSurface: LsColorsDark.textPrimary,
+    error: LsColorsDark.errorPrimary,
+    outline: LsColorsDark.border,
+  ),
+  dividerColor: LsColorsDark.divider,
+  fontFamily: LsFonts.header,
+  useMaterial3: true,
+);
 
 ThemeData lsLightTheme() => ThemeData(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: LsColorsLight.backgroundLight,
-      colorScheme: const ColorScheme.light(
-        primary: LsColorsLight.purplePrimary,
-        onPrimary: LsColorsLight.onPurple,
-        secondary: LsColorsLight.forgeOrange,
-        surface: LsColorsLight.background,
-        onSurface: LsColorsLight.textPrimary,
-        error: LsColorsLight.errorPrimary,
-        outline: LsColorsLight.border,
-      ),
-      dividerColor: LsColorsLight.border,
-      fontFamily: LsFonts.header,
-      useMaterial3: true,
-    );
+  brightness: Brightness.light,
+  scaffoldBackgroundColor: LsColorsLight.backgroundLight,
+  colorScheme: const ColorScheme.light(
+    primary: LsColorsLight.purplePrimary,
+    onPrimary: LsColorsLight.onPurple,
+    secondary: LsColorsLight.forgeOrange,
+    surface: LsColorsLight.background,
+    onSurface: LsColorsLight.textPrimary,
+    error: LsColorsLight.errorPrimary,
+    outline: LsColorsLight.border,
+  ),
+  dividerColor: LsColorsLight.border,
+  fontFamily: LsFonts.header,
+  useMaterial3: true,
+);

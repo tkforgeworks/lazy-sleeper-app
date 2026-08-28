@@ -1,0 +1,53 @@
+name: lazy_sleeper_app
+description: "Lazy Sleeper client: board, draft companion, garage and season views over the lazy-sleeper API."
+publish_to: 'none'
+
+# Tracks the backend (lazy-sleeper) minor version it is built against.
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.4.2
+  flutter_svg: ^2.3.0
+  go_router: ^18.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/brand/
+
+  # Fonts are bundled (not fetched via google_fonts): draft night runs over
+  # Tailscale and a runtime font fetch is one more thing that can fail.
+  # Poppins ships as static weights; JetBrains Mono and Source Serif 4 are
+  # variable fonts and need FontVariation('wght', ...) — see LsText.
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Poppins-ExtraBold.ttf
+          weight: 800
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-VariableFont_wght.ttf
+    - family: Source Serif 4
+      fonts:
+        - asset: assets/fonts/SourceSerif4-VariableFont_opsz_wght.ttf
+        - asset: assets/fonts/SourceSerif4-Italic-VariableFont_opsz_wght.ttf
+          style: italic
