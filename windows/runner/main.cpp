@@ -19,6 +19,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   flutter::DartProject project(L"data");
 
+  // Render with Skia. Flutter 3.47 defaults Windows to Impeller's OpenGL ES
+  // backend, which access-violates in flutter_windows.dll at startup on some
+  // AMD drivers (seen on an RX 7800 XT, driver 32.0.21030). This switch is
+  // honoured in every build mode. Revisit once Windows Impeller leaves GL.
+  project.set_impeller_switch(flutter::ImpellerSwitch::Disabled);
+
   std::vector<std::string> command_line_arguments =
       GetCommandLineArguments();
 
