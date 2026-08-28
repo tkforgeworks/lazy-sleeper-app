@@ -603,7 +603,9 @@ as Map<String, dynamic>,
 mixin _$BoardRow {
 
  int get rank; String get sleeperId; String get name; String get position; String? get team;/// Sleeper's status string, e.g. `Questionable`, `IR`, `PUP`; null = healthy.
- String? get injuryStatus;/// Projected season points under the board's provider (ensemble by default).
+ String? get injuryStatus;/// Regular-season bye week (LS-57); null when the schedule has none for
+/// the team (free agents, unlisted teams).
+ int? get bye;/// Projected season points under the board's provider (ensemble by default).
  double get points;/// Replacement-level points used for this position.
  double get baseline; double get vorp; int get posRank;/// Null below the tiered depth for the position.
  int? get tier; bool get cliff; double? get gapToNext; double? get adp;/// Positive = value (ADP later than rank), negative = reach.
@@ -623,16 +625,16 @@ $BoardRowCopyWith<BoardRow> get copyWith => _$BoardRowCopyWithImpl<BoardRow>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardRow&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.sleeperId, sleeperId) || other.sleeperId == sleeperId)&&(identical(other.name, name) || other.name == name)&&(identical(other.position, position) || other.position == position)&&(identical(other.team, team) || other.team == team)&&(identical(other.injuryStatus, injuryStatus) || other.injuryStatus == injuryStatus)&&(identical(other.points, points) || other.points == points)&&(identical(other.baseline, baseline) || other.baseline == baseline)&&(identical(other.vorp, vorp) || other.vorp == vorp)&&(identical(other.posRank, posRank) || other.posRank == posRank)&&(identical(other.tier, tier) || other.tier == tier)&&(identical(other.cliff, cliff) || other.cliff == cliff)&&(identical(other.gapToNext, gapToNext) || other.gapToNext == gapToNext)&&(identical(other.adp, adp) || other.adp == adp)&&(identical(other.adpDelta, adpDelta) || other.adpDelta == adpDelta)&&(identical(other.adpFlag, adpFlag) || other.adpFlag == adpFlag)&&(identical(other.spread, spread) || other.spread == spread)&&(identical(other.disagree, disagree) || other.disagree == disagree)&&const DeepCollectionEquality().equals(other.components, components));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardRow&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.sleeperId, sleeperId) || other.sleeperId == sleeperId)&&(identical(other.name, name) || other.name == name)&&(identical(other.position, position) || other.position == position)&&(identical(other.team, team) || other.team == team)&&(identical(other.injuryStatus, injuryStatus) || other.injuryStatus == injuryStatus)&&(identical(other.bye, bye) || other.bye == bye)&&(identical(other.points, points) || other.points == points)&&(identical(other.baseline, baseline) || other.baseline == baseline)&&(identical(other.vorp, vorp) || other.vorp == vorp)&&(identical(other.posRank, posRank) || other.posRank == posRank)&&(identical(other.tier, tier) || other.tier == tier)&&(identical(other.cliff, cliff) || other.cliff == cliff)&&(identical(other.gapToNext, gapToNext) || other.gapToNext == gapToNext)&&(identical(other.adp, adp) || other.adp == adp)&&(identical(other.adpDelta, adpDelta) || other.adpDelta == adpDelta)&&(identical(other.adpFlag, adpFlag) || other.adpFlag == adpFlag)&&(identical(other.spread, spread) || other.spread == spread)&&(identical(other.disagree, disagree) || other.disagree == disagree)&&const DeepCollectionEquality().equals(other.components, components));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,rank,sleeperId,name,position,team,injuryStatus,points,baseline,vorp,posRank,tier,cliff,gapToNext,adp,adpDelta,adpFlag,spread,disagree,const DeepCollectionEquality().hash(components)]);
+int get hashCode => Object.hashAll([runtimeType,rank,sleeperId,name,position,team,injuryStatus,bye,points,baseline,vorp,posRank,tier,cliff,gapToNext,adp,adpDelta,adpFlag,spread,disagree,const DeepCollectionEquality().hash(components)]);
 
 @override
 String toString() {
-  return 'BoardRow(rank: $rank, sleeperId: $sleeperId, name: $name, position: $position, team: $team, injuryStatus: $injuryStatus, points: $points, baseline: $baseline, vorp: $vorp, posRank: $posRank, tier: $tier, cliff: $cliff, gapToNext: $gapToNext, adp: $adp, adpDelta: $adpDelta, adpFlag: $adpFlag, spread: $spread, disagree: $disagree, components: $components)';
+  return 'BoardRow(rank: $rank, sleeperId: $sleeperId, name: $name, position: $position, team: $team, injuryStatus: $injuryStatus, bye: $bye, points: $points, baseline: $baseline, vorp: $vorp, posRank: $posRank, tier: $tier, cliff: $cliff, gapToNext: $gapToNext, adp: $adp, adpDelta: $adpDelta, adpFlag: $adpFlag, spread: $spread, disagree: $disagree, components: $components)';
 }
 
 
@@ -643,7 +645,7 @@ abstract mixin class $BoardRowCopyWith<$Res>  {
   factory $BoardRowCopyWith(BoardRow value, $Res Function(BoardRow) _then) = _$BoardRowCopyWithImpl;
 @useResult
 $Res call({
- int rank, String sleeperId, String name, String position, String? team, String? injuryStatus, double points, double baseline, double vorp, int posRank, int? tier, bool cliff, double? gapToNext, double? adp, double? adpDelta, String? adpFlag, double? spread, bool disagree, Map<String, double> components
+ int rank, String sleeperId, String name, String position, String? team, String? injuryStatus, int? bye, double points, double baseline, double vorp, int posRank, int? tier, bool cliff, double? gapToNext, double? adp, double? adpDelta, String? adpFlag, double? spread, bool disagree, Map<String, double> components
 });
 
 
@@ -660,7 +662,7 @@ class _$BoardRowCopyWithImpl<$Res>
 
 /// Create a copy of BoardRow
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? rank = null,Object? sleeperId = null,Object? name = null,Object? position = null,Object? team = freezed,Object? injuryStatus = freezed,Object? points = null,Object? baseline = null,Object? vorp = null,Object? posRank = null,Object? tier = freezed,Object? cliff = null,Object? gapToNext = freezed,Object? adp = freezed,Object? adpDelta = freezed,Object? adpFlag = freezed,Object? spread = freezed,Object? disagree = null,Object? components = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rank = null,Object? sleeperId = null,Object? name = null,Object? position = null,Object? team = freezed,Object? injuryStatus = freezed,Object? bye = freezed,Object? points = null,Object? baseline = null,Object? vorp = null,Object? posRank = null,Object? tier = freezed,Object? cliff = null,Object? gapToNext = freezed,Object? adp = freezed,Object? adpDelta = freezed,Object? adpFlag = freezed,Object? spread = freezed,Object? disagree = null,Object? components = null,}) {
   return _then(BoardRow(
 rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
 as int,sleeperId: null == sleeperId ? _self.sleeperId : sleeperId // ignore: cast_nullable_to_non_nullable
@@ -668,7 +670,8 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
 as String,team: freezed == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as String?,injuryStatus: freezed == injuryStatus ? _self.injuryStatus : injuryStatus // ignore: cast_nullable_to_non_nullable
-as String?,points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
+as String?,bye: freezed == bye ? _self.bye : bye // ignore: cast_nullable_to_non_nullable
+as int?,points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
 as double,baseline: null == baseline ? _self.baseline : baseline // ignore: cast_nullable_to_non_nullable
 as double,vorp: null == vorp ? _self.vorp : vorp // ignore: cast_nullable_to_non_nullable
 as double,posRank: null == posRank ? _self.posRank : posRank // ignore: cast_nullable_to_non_nullable
@@ -766,10 +769,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int rank,  String sleeperId,  String name,  String position,  String? team,  String? injuryStatus,  double points,  double baseline,  double vorp,  int posRank,  int? tier,  bool cliff,  double? gapToNext,  double? adp,  double? adpDelta,  String? adpFlag,  double? spread,  bool disagree,  Map<String, double> components)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int rank,  String sleeperId,  String name,  String position,  String? team,  String? injuryStatus,  int? bye,  double points,  double baseline,  double vorp,  int posRank,  int? tier,  bool cliff,  double? gapToNext,  double? adp,  double? adpDelta,  String? adpFlag,  double? spread,  bool disagree,  Map<String, double> components)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BoardRow() when $default != null:
-return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,_that.injuryStatus,_that.points,_that.baseline,_that.vorp,_that.posRank,_that.tier,_that.cliff,_that.gapToNext,_that.adp,_that.adpDelta,_that.adpFlag,_that.spread,_that.disagree,_that.components);case _:
+return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,_that.injuryStatus,_that.bye,_that.points,_that.baseline,_that.vorp,_that.posRank,_that.tier,_that.cliff,_that.gapToNext,_that.adp,_that.adpDelta,_that.adpFlag,_that.spread,_that.disagree,_that.components);case _:
   return orElse();
 
 }
@@ -787,10 +790,10 @@ return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int rank,  String sleeperId,  String name,  String position,  String? team,  String? injuryStatus,  double points,  double baseline,  double vorp,  int posRank,  int? tier,  bool cliff,  double? gapToNext,  double? adp,  double? adpDelta,  String? adpFlag,  double? spread,  bool disagree,  Map<String, double> components)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int rank,  String sleeperId,  String name,  String position,  String? team,  String? injuryStatus,  int? bye,  double points,  double baseline,  double vorp,  int posRank,  int? tier,  bool cliff,  double? gapToNext,  double? adp,  double? adpDelta,  String? adpFlag,  double? spread,  bool disagree,  Map<String, double> components)  $default,) {final _that = this;
 switch (_that) {
 case _BoardRow():
-return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,_that.injuryStatus,_that.points,_that.baseline,_that.vorp,_that.posRank,_that.tier,_that.cliff,_that.gapToNext,_that.adp,_that.adpDelta,_that.adpFlag,_that.spread,_that.disagree,_that.components);case _:
+return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,_that.injuryStatus,_that.bye,_that.points,_that.baseline,_that.vorp,_that.posRank,_that.tier,_that.cliff,_that.gapToNext,_that.adp,_that.adpDelta,_that.adpFlag,_that.spread,_that.disagree,_that.components);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -807,10 +810,10 @@ return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int rank,  String sleeperId,  String name,  String position,  String? team,  String? injuryStatus,  double points,  double baseline,  double vorp,  int posRank,  int? tier,  bool cliff,  double? gapToNext,  double? adp,  double? adpDelta,  String? adpFlag,  double? spread,  bool disagree,  Map<String, double> components)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int rank,  String sleeperId,  String name,  String position,  String? team,  String? injuryStatus,  int? bye,  double points,  double baseline,  double vorp,  int posRank,  int? tier,  bool cliff,  double? gapToNext,  double? adp,  double? adpDelta,  String? adpFlag,  double? spread,  bool disagree,  Map<String, double> components)?  $default,) {final _that = this;
 switch (_that) {
 case _BoardRow() when $default != null:
-return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,_that.injuryStatus,_that.points,_that.baseline,_that.vorp,_that.posRank,_that.tier,_that.cliff,_that.gapToNext,_that.adp,_that.adpDelta,_that.adpFlag,_that.spread,_that.disagree,_that.components);case _:
+return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,_that.injuryStatus,_that.bye,_that.points,_that.baseline,_that.vorp,_that.posRank,_that.tier,_that.cliff,_that.gapToNext,_that.adp,_that.adpDelta,_that.adpFlag,_that.spread,_that.disagree,_that.components);case _:
   return null;
 
 }
@@ -822,7 +825,7 @@ return $default(_that.rank,_that.sleeperId,_that.name,_that.position,_that.team,
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class _BoardRow implements BoardRow {
-  const _BoardRow({required this.rank, required this.sleeperId, required this.name, required this.position, this.team, this.injuryStatus, required this.points, required this.baseline, required this.vorp, required this.posRank, this.tier, required this.cliff, this.gapToNext, this.adp, this.adpDelta, this.adpFlag, this.spread, required this.disagree, required  Map<String, double> components}): _components = components;
+  const _BoardRow({required this.rank, required this.sleeperId, required this.name, required this.position, this.team, this.injuryStatus, this.bye, required this.points, required this.baseline, required this.vorp, required this.posRank, this.tier, required this.cliff, this.gapToNext, this.adp, this.adpDelta, this.adpFlag, this.spread, required this.disagree, required  Map<String, double> components}): _components = components;
   factory _BoardRow.fromJson(Map<String, dynamic> json) => _$BoardRowFromJson(json);
 
 @override final  int rank;
@@ -832,6 +835,9 @@ class _BoardRow implements BoardRow {
 @override final  String? team;
 /// Sleeper's status string, e.g. `Questionable`, `IR`, `PUP`; null = healthy.
 @override final  String? injuryStatus;
+/// Regular-season bye week (LS-57); null when the schedule has none for
+/// the team (free agents, unlisted teams).
+@override final  int? bye;
 /// Projected season points under the board's provider (ensemble by default).
 @override final  double points;
 /// Replacement-level points used for this position.
@@ -873,16 +879,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BoardRow&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.sleeperId, sleeperId) || other.sleeperId == sleeperId)&&(identical(other.name, name) || other.name == name)&&(identical(other.position, position) || other.position == position)&&(identical(other.team, team) || other.team == team)&&(identical(other.injuryStatus, injuryStatus) || other.injuryStatus == injuryStatus)&&(identical(other.points, points) || other.points == points)&&(identical(other.baseline, baseline) || other.baseline == baseline)&&(identical(other.vorp, vorp) || other.vorp == vorp)&&(identical(other.posRank, posRank) || other.posRank == posRank)&&(identical(other.tier, tier) || other.tier == tier)&&(identical(other.cliff, cliff) || other.cliff == cliff)&&(identical(other.gapToNext, gapToNext) || other.gapToNext == gapToNext)&&(identical(other.adp, adp) || other.adp == adp)&&(identical(other.adpDelta, adpDelta) || other.adpDelta == adpDelta)&&(identical(other.adpFlag, adpFlag) || other.adpFlag == adpFlag)&&(identical(other.spread, spread) || other.spread == spread)&&(identical(other.disagree, disagree) || other.disagree == disagree)&&const DeepCollectionEquality().equals(other._components, _components));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BoardRow&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.sleeperId, sleeperId) || other.sleeperId == sleeperId)&&(identical(other.name, name) || other.name == name)&&(identical(other.position, position) || other.position == position)&&(identical(other.team, team) || other.team == team)&&(identical(other.injuryStatus, injuryStatus) || other.injuryStatus == injuryStatus)&&(identical(other.bye, bye) || other.bye == bye)&&(identical(other.points, points) || other.points == points)&&(identical(other.baseline, baseline) || other.baseline == baseline)&&(identical(other.vorp, vorp) || other.vorp == vorp)&&(identical(other.posRank, posRank) || other.posRank == posRank)&&(identical(other.tier, tier) || other.tier == tier)&&(identical(other.cliff, cliff) || other.cliff == cliff)&&(identical(other.gapToNext, gapToNext) || other.gapToNext == gapToNext)&&(identical(other.adp, adp) || other.adp == adp)&&(identical(other.adpDelta, adpDelta) || other.adpDelta == adpDelta)&&(identical(other.adpFlag, adpFlag) || other.adpFlag == adpFlag)&&(identical(other.spread, spread) || other.spread == spread)&&(identical(other.disagree, disagree) || other.disagree == disagree)&&const DeepCollectionEquality().equals(other._components, _components));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,rank,sleeperId,name,position,team,injuryStatus,points,baseline,vorp,posRank,tier,cliff,gapToNext,adp,adpDelta,adpFlag,spread,disagree,const DeepCollectionEquality().hash(_components)]);
+int get hashCode => Object.hashAll([runtimeType,rank,sleeperId,name,position,team,injuryStatus,bye,points,baseline,vorp,posRank,tier,cliff,gapToNext,adp,adpDelta,adpFlag,spread,disagree,const DeepCollectionEquality().hash(_components)]);
 
 @override
 String toString() {
-  return 'BoardRow(rank: $rank, sleeperId: $sleeperId, name: $name, position: $position, team: $team, injuryStatus: $injuryStatus, points: $points, baseline: $baseline, vorp: $vorp, posRank: $posRank, tier: $tier, cliff: $cliff, gapToNext: $gapToNext, adp: $adp, adpDelta: $adpDelta, adpFlag: $adpFlag, spread: $spread, disagree: $disagree, components: $components)';
+  return 'BoardRow(rank: $rank, sleeperId: $sleeperId, name: $name, position: $position, team: $team, injuryStatus: $injuryStatus, bye: $bye, points: $points, baseline: $baseline, vorp: $vorp, posRank: $posRank, tier: $tier, cliff: $cliff, gapToNext: $gapToNext, adp: $adp, adpDelta: $adpDelta, adpFlag: $adpFlag, spread: $spread, disagree: $disagree, components: $components)';
 }
 
 
@@ -893,7 +899,7 @@ abstract mixin class _$BoardRowCopyWith<$Res> implements $BoardRowCopyWith<$Res>
   factory _$BoardRowCopyWith(_BoardRow value, $Res Function(_BoardRow) _then) = __$BoardRowCopyWithImpl;
 @override @useResult
 $Res call({
- int rank, String sleeperId, String name, String position, String? team, String? injuryStatus, double points, double baseline, double vorp, int posRank, int? tier, bool cliff, double? gapToNext, double? adp, double? adpDelta, String? adpFlag, double? spread, bool disagree, Map<String, double> components
+ int rank, String sleeperId, String name, String position, String? team, String? injuryStatus, int? bye, double points, double baseline, double vorp, int posRank, int? tier, bool cliff, double? gapToNext, double? adp, double? adpDelta, String? adpFlag, double? spread, bool disagree, Map<String, double> components
 });
 
 
@@ -910,7 +916,7 @@ class __$BoardRowCopyWithImpl<$Res>
 
 /// Create a copy of BoardRow
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? rank = null,Object? sleeperId = null,Object? name = null,Object? position = null,Object? team = freezed,Object? injuryStatus = freezed,Object? points = null,Object? baseline = null,Object? vorp = null,Object? posRank = null,Object? tier = freezed,Object? cliff = null,Object? gapToNext = freezed,Object? adp = freezed,Object? adpDelta = freezed,Object? adpFlag = freezed,Object? spread = freezed,Object? disagree = null,Object? components = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rank = null,Object? sleeperId = null,Object? name = null,Object? position = null,Object? team = freezed,Object? injuryStatus = freezed,Object? bye = freezed,Object? points = null,Object? baseline = null,Object? vorp = null,Object? posRank = null,Object? tier = freezed,Object? cliff = null,Object? gapToNext = freezed,Object? adp = freezed,Object? adpDelta = freezed,Object? adpFlag = freezed,Object? spread = freezed,Object? disagree = null,Object? components = null,}) {
   return _then(_BoardRow(
 rank: null == rank ? _self.rank : rank // ignore: cast_nullable_to_non_nullable
 as int,sleeperId: null == sleeperId ? _self.sleeperId : sleeperId // ignore: cast_nullable_to_non_nullable
@@ -918,7 +924,8 @@ as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non
 as String,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
 as String,team: freezed == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
 as String?,injuryStatus: freezed == injuryStatus ? _self.injuryStatus : injuryStatus // ignore: cast_nullable_to_non_nullable
-as String?,points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
+as String?,bye: freezed == bye ? _self.bye : bye // ignore: cast_nullable_to_non_nullable
+as int?,points: null == points ? _self.points : points // ignore: cast_nullable_to_non_nullable
 as double,baseline: null == baseline ? _self.baseline : baseline // ignore: cast_nullable_to_non_nullable
 as double,vorp: null == vorp ? _self.vorp : vorp // ignore: cast_nullable_to_non_nullable
 as double,posRank: null == posRank ? _self.posRank : posRank // ignore: cast_nullable_to_non_nullable

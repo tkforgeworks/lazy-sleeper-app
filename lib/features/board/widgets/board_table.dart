@@ -204,7 +204,7 @@ class _PlayerRowState extends State<_PlayerRow> {
                 ),
               ),
               _cell(_Cols.pos, PosChip(r.position), align: Alignment.center),
-              _cell(_Cols.bye, Text(dash, style: num)),
+              _cell(_Cols.bye, Text(fmtBye(r.bye), style: num)),
               _cell(
                 _Cols.slpr,
                 Text(fmtPts(r.components['sleeper']), style: num),

@@ -100,12 +100,16 @@ String fmtSurvival(double? survival) =>
 
 String fmtPts(double v) => v.round().toString();
 
-/// `HOU · WR8 · bye 8`.
-String rowSub(DraftRow r) => [
+/// `HOU · WR8 · bye 8`; `withBye: false` where a BYE column carries it.
+String rowSub(DraftRow r, {bool withBye = true}) => [
   r.team ?? 'FA',
   '${r.position}${r.posRank}',
-  if (r.bye case final bye?) 'bye $bye',
+  if (withBye)
+    if (r.bye case final bye?) 'bye $bye',
 ].join(' · ');
+
+/// Bye week as a plain number; dash when the schedule has none.
+String fmtBye(int? bye) => bye == null ? dash : '$bye';
 
 /// `→ pick 26` for the survival column header; dash when there is none.
 String nextPickLabel(DraftClock clock) =>

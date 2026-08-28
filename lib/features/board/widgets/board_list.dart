@@ -78,7 +78,7 @@ class _MobileRow extends StatelessWidget {
                     style: LsText.rowTitle.copyWith(color: ls.textPrimary),
                   ),
                   Text(
-                    rowSub(r),
+                    rowSub(r, withBye: true),
                     style: LsText.caption.copyWith(
                       fontSize: 10,
                       color: ls.textSecondary,

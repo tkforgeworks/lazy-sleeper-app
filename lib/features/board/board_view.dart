@@ -125,8 +125,17 @@ String fmtDelta(double? v) {
   return v < 0 ? '−$s' : '+$s';
 }
 
-/// "DET · RB1"; free agents show FA.
-String rowSub(BoardRow r) => '${r.team ?? 'FA'} · ${r.position}${r.posRank}';
+/// Bye week as a plain number; dash when the schedule has none.
+String fmtBye(int? bye) => bye == null ? dash : '$bye';
+
+/// "DET · RB1", or "DET · RB1 · bye 6" with [withBye] (mobile rows and the
+/// drawer, which have no BYE column); free agents show FA.
+String rowSub(BoardRow r, {bool withBye = false}) => [
+  r.team ?? 'FA',
+  '${r.position}${r.posRank}',
+  if (withBye)
+    if (r.bye case final bye?) 'bye $bye',
+].join(' · ');
 
 /// SPLIT flag text: "±24" from the ensemble spread.
 String splitLabel(BoardRow r) => '±${(r.spread ?? 0).round()}';

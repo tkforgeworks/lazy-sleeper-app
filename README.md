@@ -11,10 +11,12 @@ that API and never reimplements it.
 
 Flutter app on Windows, web and Android, covering LS-39 in full:
 
-- **Big Board** — ranked, filterable player table with a player detail drawer, over `GET /board`.
+- **Big Board** — ranked, filterable player table (projections, VORP, tier, ADP, bye week) with a player
+  detail drawer, over `GET /board`.
 - **Draft Command Center** — read-only draft-night view over `GET /draft/{id}/state`: pick clock, on-the-clock
   team, picks-until-you, your roster seats, the backend's recommendation with one line of why and two
-  fallbacks, best-available table with survival bars, tier-cliff / run / value / injury alerts, pick ticker.
+  fallbacks, best-available table with bye weeks and survival bars, tier-cliff / run / value / injury
+  alerts, pick ticker.
   At your turn with 30 s or less the panic overlay highlights the pick — **the app never submits a pick;
   that happens in Sleeper.** The runner (`POST /draft/{id}/start|stop`) is driven from the same screen.
 - **Logs** — `package:logging` capture with a per-session file on desktop/mobile and an in-app Logs view

@@ -67,6 +67,10 @@ abstract class BoardRow with _$BoardRow {
     /// Sleeper's status string, e.g. `Questionable`, `IR`, `PUP`; null = healthy.
     String? injuryStatus,
 
+    /// Regular-season bye week (LS-57); null when the schedule has none for
+    /// the team (free agents, unlisted teams).
+    int? bye,
+
     /// Projected season points under the board's provider (ensemble by default).
     required double points,
 

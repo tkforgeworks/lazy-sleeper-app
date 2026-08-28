@@ -13,6 +13,7 @@ BoardRow row({
   String? injury,
   double? spread,
   bool disagree = false,
+  int? bye,
 }) => BoardRow(
   rank: rank,
   sleeperId: '$rank',
@@ -20,6 +21,7 @@ BoardRow row({
   position: position,
   team: 'DET',
   injuryStatus: injury,
+  bye: bye,
   points: points,
   baseline: 50,
   vorp: points - 50,
@@ -46,6 +48,19 @@ void main() {
 
       expect(qb.map((r) => r.rank), [2, 3]);
       expect(filterRows(rows, null), rows);
+    });
+  });
+
+  group('bye week', () {
+    test('formats as a number, dash when the schedule has none', () {
+      expect(fmtBye(6), '6');
+      expect(fmtBye(null), dash);
+    });
+
+    test('rowSub carries the bye only where asked, and never when null', () {
+      expect(rowSub(row(rank: 1, bye: 6)), 'DET · RB1');
+      expect(rowSub(row(rank: 1, bye: 6), withBye: true), 'DET · RB1 · bye 6');
+      expect(rowSub(row(rank: 1), withBye: true), 'DET · RB1');
     });
   });
 

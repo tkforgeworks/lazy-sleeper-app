@@ -16,6 +16,10 @@ void main() {
       expect(find.text('Jahmyr Gibbs'), findsOneWidget);
       expect(find.textContaining('TIER 1'), findsNothing);
       expect(find.textContaining('players'), findsOneWidget);
+      // BYE column: header plus Gibbs' week from the fixture (DET, bye 6).
+      expect(find.text('BYE'), findsOneWidget);
+      expect(find.text('6'), findsWidgets);
+      expect(find.text('DET · RB1'), findsOneWidget);
     });
 
     testWidgets('position chips filter the rows and reveal tier breaks', (
@@ -63,6 +67,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(PlayerDrawer), findsOneWidget);
       expect(find.byType(SourceProjectionBar), findsNWidgets(4));
+      expect(find.text('DET · RB1 · bye 6 · rank 1'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Close'));
       await tester.pumpAndSettle();
@@ -75,6 +80,8 @@ void main() {
       await pumpApp(tester, mobileSize);
 
       expect(find.byType(PlayerDrawer), findsNothing);
+      // No BYE column on a phone: the bye rides in the row's sub-line.
+      expect(find.text('DET · RB1 · bye 6'), findsOneWidget);
       await tester.tap(find.text('Jahmyr Gibbs'));
       await tester.pumpAndSettle();
 
