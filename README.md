@@ -60,6 +60,36 @@ flutter test
 Models under `lib/api/models/` are generated (`freezed` + `json_serializable`); after editing one run
 `dart run build_runner build --delete-conflicting-outputs` and commit the output.
 
+## Releasing
+
+There is no Flutter release pipeline in the org yet (the Electron one is npm/electron-builder only), so a
+release is built here and uploaded by hand. Artifacts land in `release/` (gitignored):
+
+```powershell
+scripts/release/build-windows.ps1   # flutter build windows → release/lazy-sleeper-app-<v>-windows-x64-setup.exe + .zip
+scripts/release/build-android.ps1   # flutter build apk (signed) → release/lazy-sleeper-app-<v>-android.apk
+```
+
+- **Windows**: an [Inno Setup 6](https://jrsoftware.org/isinfo.php) installer (`winget install JRSoftware.InnoSetup`;
+  script in `windows/installer/lazy-sleeper.iss`) — a wizard with the per-user / all-users choice, an install
+  directory page, Start Menu and optional desktop shortcut, the same shape as the org's NSIS assisted installer
+  for Electron apps. The build script copies the VC++ runtime DLLs into the bundle from the local Visual Studio
+  redist. The installer is **not code-signed**: SmartScreen shows "Windows protected your PC" on first run —
+  *More info → Run anyway*. The zip is the bare bundle for anyone who prefers no installer.
+- **Android**: signed with the upload keystore named in `android/key.properties`. Both files are gitignored and
+  live in 1Password; `scripts/release/new-android-keystore.ps1` creates a fresh pair the first time (never
+  regenerate one that has shipped — Android ties updates to the key). Without `key.properties`, `flutter run
+  --release` falls back to the debug key and the release script refuses to build.
+- **Icons**: `assets/brand/app_icon.png` (dark tile) and `app_icon_foreground.png` (adaptive foreground), both
+  512×512 renders of the brand mark; `dart run flutter_launcher_icons` regenerates the Windows `.ico` and the
+  Android mipmaps from them.
+- **Version**: `pubspec.yaml` `version: X.Y.Z+BUILD`. `X.Y.Z` names the installer and the release; `+BUILD` is
+  the Android `versionCode` and must go up on every APK that reaches a device. Bump it by hand until the org's
+  release scripts learn `pubspec.yaml`.
+
+To ship: build both, open the release PR `v0.1.0/main` → `main`, merge when CI is green, then create the
+GitHub release `v0.1.0` from `main` with the installer and APK attached.
+
 ## Design
 
 `docs/design_handoff_lazy_sleeper/` holds the design handoff (screens, component specs, HTML prototypes,
