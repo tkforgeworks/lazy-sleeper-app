@@ -9,9 +9,20 @@ that API and never reimplements it.
 
 ## Status
 
-Flutter app, first increment of LS-39: the **Big Board** (ranked, filterable player table with a player
-detail drawer) over the backend's `GET /board`, on Windows, web and Android. Next: the draft companion view
-over `GET /draft/{id}/state`. The draft-night fallback remains the backend's own `/draft.html`.
+Flutter app on Windows, web and Android, covering LS-39 in full:
+
+- **Big Board** — ranked, filterable player table with a player detail drawer, over `GET /board`.
+- **Draft Command Center** — read-only draft-night view over `GET /draft/{id}/state`: pick clock, on-the-clock
+  team, picks-until-you, your roster seats, the backend's recommendation with one line of why and two
+  fallbacks, best-available table with survival bars, tier-cliff / run / value / injury alerts, pick ticker.
+  At your turn with 30 s or less the panic overlay highlights the pick — **the app never submits a pick;
+  that happens in Sleeper.** The runner (`POST /draft/{id}/start|stop`) is driven from the same screen.
+- **Logs** — `package:logging` capture with a per-session file on desktop/mobile and an in-app Logs view
+  (copy / save / verbose), for reading alongside the backend's log during a live test.
+
+Known: polling is 2 s and the view redraws on the backend's `recompute.seq`, so a mock full of CPU drafters
+feels laggy; a poll/refresh setting is a follow-up. The draft-night fallback remains the backend's own
+`/draft.html`.
 
 ## Running it
 
@@ -24,7 +35,13 @@ flutter run -d windows --dart-define=LS_API_URL=http://100.x.y.z:8000   # e.g. t
 flutter run -d chrome --dart-define=LS_FAKE_DATA=true                   # bundled fixture, no backend
 ```
 
-The API address can also be changed in-app (gear icon) and is remembered across launches.
+The API address can also be changed in-app (gear icon) and is remembered across launches, as is the draft
+id. `--dart-define=LS_LOG_LEVEL=FINE` starts with verbose logging (request/response bodies); the Logs view
+(icon beside the gear) can toggle it at runtime and shows where the session log file is.
+
+Draft night: start `lazy serve`, open Draft, enter the Sleeper draft id, **Start runner** before the room
+opens, and leave the tab there. The runner is polled only while it is up — a stopped, complete or unknown
+draft is fetched once and then left alone until you press Start again.
 
 Checks, as CI runs them from the repo root:
 

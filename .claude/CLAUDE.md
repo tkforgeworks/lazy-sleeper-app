@@ -4,7 +4,16 @@ Client app for Lazy Sleeper (Sleeper NFL fantasy draft/in-season helper). **Pres
 logic lives in the Python/FastAPI backend repo `tkforgeworks/lazy-sleeper`; this app consumes its API and
 never reimplements logic. Keep this file in sync as decisions land.
 
-## Repo state (2026-08-28)
+## Repo state (2026-08-28, end of day)
+
+- **LS-39 is functionally complete on `v0.1.0/main`** (PRs #1–#9). Live-tested by Tim on a Sleeper mock
+  with the logging build: runner, Command Center, clock, no stale polling. Observation: with CPU drafters
+  picking every few seconds the view feels very slow — it redraws only on `recompute.seq` every 2 s poll and
+  the backend recompute takes ~50–100 ms per pick, so the lag is mostly the poll cadence. **Follow-up: a
+  poll/refresh setting** (Tim will tweak once a settings screen exists); not draft-night blocking.
+- Open items after this: v0.1.0 release path (no Flutter release workflow in the org yet — see the untracked
+  handoff `C:\Code\.github\HANDOFF-flutter-version-branch-flow.md`), backend gaps LS-57..61 (BYE column,
+  player detail, garage, season), settings screen.
 
 - Flutter app (LS-39): scaffold, theme, API client, Big Board screen, API-address setting, draft runner
   controls (`GET /draft`, `POST /draft/{id}/start|stop`; the draft id is remembered in prefs), and the live
