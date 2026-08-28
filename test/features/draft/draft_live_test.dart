@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lazy_sleeper_app/api/fixture_api.dart';
 import 'package:lazy_sleeper_app/api/lazy_sleeper_api.dart';
 import 'package:lazy_sleeper_app/api/models/draft.dart';
 import 'package:lazy_sleeper_app/app/app.dart';
@@ -66,16 +67,18 @@ void main() {
     expect(find.text('Pick 2.12'), findsOneWidget);
   });
 
-  testWidgets('404 means the runner is not up; a later 200 recovers', (
-    tester,
-  ) async {
+  testWidgets('404 stops polling until the runner is started', (tester) async {
+    var calls = 0;
     var up = false;
     final api = FakeLazySleeperApi(
       onState: (id, position, limit) async {
-        if (!up) {
-          throw const ApiException('not running', statusCode: 404);
-        }
+        calls++;
+        if (!up) throw const ApiException('not running', statusCode: 404);
         return loadDraftState();
+      },
+      onStart: (id, season) async {
+        up = true;
+        return DraftStartOutStub.from(id, season);
       },
     );
     await pumpApp(
@@ -92,8 +95,11 @@ void main() {
     );
     expect(find.textContaining('Runner not up'), findsOneWidget);
 
-    up = true;
-    await tester.pump(_tick);
+    await tester.pump(_tick * 5);
+    expect(calls, 1, reason: 'no retry loop against a dead runner');
+
+    await tester.tap(find.text('Start runner'));
+    await tester.pump();
     await tester.pump();
 
     expect(
@@ -101,14 +107,53 @@ void main() {
       DraftLivePhase.live,
     );
     expect(find.text('Pick 2.11'), findsOneWidget);
+    await tester.pump(_tick);
+    await tester.pump();
+    expect(calls, 3, reason: 'live again: polling resumed');
   });
 
-  testWidgets('a failed poll keeps the last good state and says so', (
+  testWidgets('a stopped or complete draft is fetched once, then left', (
     tester,
   ) async {
-    var fail = false;
+    var calls = 0;
+    final stopped = loadDraftState(FixtureLazySleeperApi.draftStateMyTurn)
+        .copyWith(running: false);
     final api = FakeLazySleeperApi(
       onState: (id, position, limit) async {
+        calls++;
+        return stopped;
+      },
+    );
+    await pumpApp(
+      tester,
+      desktopSize,
+      api: api,
+      prefs: {DraftId.prefsKey: '42'},
+    );
+    await openDraft(tester);
+
+    final live = _container(tester).read(draftLiveProvider);
+    expect(live.phase, DraftLivePhase.stopped);
+    expect(live.state, isNotNull, reason: 'still viewable');
+    expect(find.text('Pick 2.11'), findsOneWidget);
+    expect(find.text('runner stopped'), findsOneWidget);
+    expect(find.textContaining('polling is paused'), findsOneWidget);
+
+    await tester.pump(_tick * 10);
+    expect(calls, 1);
+
+    // A complete draft reads as complete, not as a stopped runner.
+    final complete = loadDraftState(FixtureLazySleeperApi.draftStateComplete);
+    expect(complete.running, isFalse);
+  });
+
+  testWidgets('failed polls back off: 2, 4, 8 s', (tester) async {
+    var fail = false;
+    final times = <Duration>[];
+    var elapsed = Duration.zero;
+    final api = FakeLazySleeperApi(
+      onState: (id, position, limit) async {
+        times.add(elapsed);
         if (fail) throw const ApiException('Could not reach the API: refused');
         return loadDraftState();
       },
@@ -120,18 +165,28 @@ void main() {
       prefs: {DraftId.prefsKey: '42'},
     );
     await openDraft(tester);
-    final good = _container(tester).read(draftLiveProvider).state;
-
     fail = true;
-    await tester.pump(_tick);
-    await tester.pump();
 
-    final live = _container(tester).read(draftLiveProvider);
-    expect(live.phase, DraftLivePhase.error);
-    expect(identical(live.state, good), isTrue);
+    Future<void> advance(Duration d) async {
+      elapsed += d;
+      await tester.pump(d);
+      await tester.pump();
+    }
+
+    await advance(_tick); // 2 s: fails → retry in 2
+    await advance(_tick); // 4 s: fails → retry in 4
+    await advance(_tick); // 6 s: nothing due
+    await advance(_tick); // 8 s: fails → retry in 8
+    await advance(_tick * 3); // 14 s: nothing due
+    await advance(_tick); // 16 s: fails
+
+    expect(times.map((t) => t.inSeconds), [0, 2, 4, 8, 16]);
+    expect(
+      _container(tester).read(draftLiveProvider).phase,
+      DraftLivePhase.error,
+    );
     expect(find.text('poll failed'), findsOneWidget);
-    expect(find.textContaining('Showing the last good state'), findsOneWidget);
-    expect(find.textContaining('Could not reach the API'), findsOneWidget);
+    expect(find.textContaining('Retrying with back-off'), findsOneWidget);
   });
 
   testWidgets('no id, no polling', (tester) async {

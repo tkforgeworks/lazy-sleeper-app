@@ -9,8 +9,10 @@ never reimplements logic. Keep this file in sync as decisions land.
 - Flutter app (LS-39): scaffold, theme, API client, Big Board screen, API-address setting, draft runner
   controls (`GET /draft`, `POST /draft/{id}/start|stop`; the draft id is remembered in prefs), and the live
   Draft Command Center. Increment 2 landed in three slices (PRs #6, #7, #8 on 2026-08-28): **2a** = `/draft/{id}/state` models (`lib/api/models/
-  draft_state.dart`), `draftLiveProvider` (polls every 2 s, swaps `DraftLive.state` only when
-  `recompute.seq` moves, 404 → `notRunning`, other failures keep the last good state), and a LIVE STATE
+  draft_state.dart`), `draftLiveProvider` (polls every 2 s **while the runner is up**, swaps `DraftLive.state` only when
+  `recompute.seq` moves; a 404, `running: false`, `clock.complete` or `poller.runner_error` fetches once and
+  then **stops polling** until Start/`refresh()` — no retry loop against a dead runner; other failures keep
+  the last good state and retry with doubling back-off capped at 30 s), and a LIVE STATE
   strip on the Draft screen; **2b** = the Command Center layout (`lib/features/draft/widgets/`: header with
   until-you box, roster strip, best-available table/list, pick ticker; runner controls move to a dialog behind
   the header's `runner` button once `/state` has answered; `draft_view.dart` holds the pure label/seat

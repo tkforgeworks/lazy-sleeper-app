@@ -32,11 +32,10 @@ class DraftScreen extends ConsumerWidget {
     final live = ref.watch(draftLiveProvider);
     final state = live.state;
     if (state == null) return _Setup(live: live);
-    final pollFailed = live.phase == DraftLivePhase.error;
     final compact = !context.isDesktop;
     final body = compact
-        ? _Mobile(state: state, pollFailed: pollFailed, error: live.error)
-        : _Desktop(state: state, pollFailed: pollFailed, error: live.error);
+        ? _Mobile(state: state, live: live)
+        : _Desktop(state: state, live: live);
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -89,7 +88,7 @@ class _Setup extends StatelessWidget {
       DraftLivePhase.notRunning => 'Runner not up for this id. Start it below.',
       DraftLivePhase.error =>
         'Could not reach /state: ${live.error ?? 'unknown error'}',
-      DraftLivePhase.live => '',
+      DraftLivePhase.live || DraftLivePhase.stopped => '',
     };
     return SingleChildScrollView(
       padding: EdgeInsets.all(context.isDesktop ? 24 : LsSpacing.md),
@@ -130,16 +129,16 @@ class _Setup extends StatelessWidget {
 }
 
 class _HeaderTrailing extends StatelessWidget {
-  const _HeaderTrailing({required this.state, required this.pollFailed});
+  const _HeaderTrailing({required this.state, required this.phase});
 
   final DraftState state;
-  final bool pollFailed;
+  final DraftLivePhase phase;
 
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      PollHealthDot(state: state, pollFailed: pollFailed),
+      PollHealthDot(state: state, phase: phase),
       const SizedBox(width: LsSpacing.sm),
       TextButton(
         onPressed: () => showRunnerDialog(context),
@@ -159,16 +158,21 @@ class _HeaderTrailing extends StatelessWidget {
 
 /// One line under the header when the advice should be read with care.
 class _Notice extends StatelessWidget {
-  const _Notice({required this.state, required this.error});
+  const _Notice({required this.state, required this.live});
 
   final DraftState state;
-  final String? error;
+  final DraftLive live;
 
   @override
   Widget build(BuildContext context) {
     final ls = context.ls;
-    final text = error != null
-        ? 'Last poll failed ($error). Showing the last good state.'
+    final error = live.error;
+    final text = live.phase == DraftLivePhase.error && error != null
+        ? 'Last poll failed ($error). Retrying with back-off; showing the '
+              'last good state.'
+        : live.phase == DraftLivePhase.stopped && !state.clock.complete
+        ? 'The runner for this draft is stopped; polling is paused. Start it '
+              'again from the runner button.'
         : state.recompute.error != null || state.recompute.stale
         ? 'Advice is from before the latest pick: '
               '${state.recompute.error ?? 'recompute stale'}.'
@@ -186,15 +190,10 @@ class _Notice extends StatelessWidget {
 }
 
 class _Desktop extends StatelessWidget {
-  const _Desktop({
-    required this.state,
-    required this.pollFailed,
-    required this.error,
-  });
+  const _Desktop({required this.state, required this.live});
 
   final DraftState state;
-  final bool pollFailed;
-  final String? error;
+  final DraftLive live;
 
   @override
   Widget build(BuildContext context) {
@@ -204,9 +203,9 @@ class _Desktop extends StatelessWidget {
         DraftHeader(
           state: state,
           center: TimerBlock(clock: state.clock),
-          trailing: _HeaderTrailing(state: state, pollFailed: pollFailed),
+          trailing: _HeaderTrailing(state: state, phase: live.phase),
         ),
-        _Notice(state: state, error: error),
+        _Notice(state: state, live: live),
         RosterStrip(roster: state.myRoster),
         Expanded(
           child: Row(
@@ -257,15 +256,10 @@ class _Desktop extends StatelessWidget {
 }
 
 class _Mobile extends StatelessWidget {
-  const _Mobile({
-    required this.state,
-    required this.pollFailed,
-    required this.error,
-  });
+  const _Mobile({required this.state, required this.live});
 
   final DraftState state;
-  final bool pollFailed;
-  final String? error;
+  final DraftLive live;
 
   @override
   Widget build(BuildContext context) {
@@ -276,9 +270,9 @@ class _Mobile extends StatelessWidget {
           state: state,
           compact: true,
           center: TimerBlock(clock: state.clock, compact: true),
-          trailing: _HeaderTrailing(state: state, pollFailed: pollFailed),
+          trailing: _HeaderTrailing(state: state, phase: live.phase),
         ),
-        _Notice(state: state, error: error),
+        _Notice(state: state, live: live),
         RosterStrip(roster: state.myRoster),
         Expanded(
           child: CustomScrollView(
