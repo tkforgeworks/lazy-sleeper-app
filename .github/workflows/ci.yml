@@ -2,14 +2,23 @@
 # `flutter pub get`, `dart format --set-exit-if-changed`, `flutter analyze`,
 # `flutter test`. Platform builds belong to a release workflow, not here.
 #
-# The resulting check is named "ci / ci" (caller job / reusable job); that is
-# the context to require in the branch ruleset once it has reported once.
+# Trigger envelope per docs/ci-standards.md, extended for the version-branch
+# flow: topic branches push into a release branch (vX.Y.Z/main), and the
+# release branch is merged into main by a release PR. Pushes to any branch
+# but main get feedback while iterating; PRs into main or a release branch
+# get the merge-gate check. The check is named "ci / ci" (caller job /
+# reusable job) and is required by the main ruleset.
 name: ci
 
 on:
-  pull_request:
   push:
-    branches: [main]
+    branches-ignore: [main]
+  pull_request:
+    branches: [main, 'v*/main']
+
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

@@ -69,6 +69,6 @@ final dioProvider = Provider<Dio>((ref) {
 
 /// The one place the app picks real vs fixture data.
 final lazySleeperApiProvider = Provider<LazySleeperApi>((ref) {
-  if (lsFakeData) return const FixtureLazySleeperApi();
+  if (lsFakeData) return FixtureLazySleeperApi();
   return HttpLazySleeperApi(ref.watch(dioProvider));
 });

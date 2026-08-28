@@ -7,7 +7,9 @@ never reimplements logic. Keep this file in sync as decisions land.
 ## Repo state (2026-08-28)
 
 - Flutter app exists (LS-39 increment 1): scaffold, theme, API client, Big Board screen, API-address
-  setting. Increment 2 (draft companion view polling `/draft/{id}/state`) is next, under the same ticket.
+  setting, and a first Draft screen that drives the backend draft runner (`GET /draft`,
+  `POST /draft/{id}/start|stop`; the draft id is remembered in prefs). Increment 2 (the live companion
+  view polling `/draft/{id}/state`) is next, under the same ticket.
 - Backend `lazy serve` runs on port **8000**; `/board` and `/draft/{id}/state` exist (v0.1.0). `/board`
   rows are untyped in its OpenAPI until LS-55, so `lib/api/models/board.dart` is transcribed by hand from
   `lazy-sleeper/docs/api/GUIDE.md`. Backend gap tickets LS-56..61 are filed; LS-56 (pick clock, on-the-clock
@@ -55,9 +57,15 @@ never reimplements logic. Keep this file in sync as decisions land.
 
 ## Working conventions
 
-- All changes land via PR to `main` (direct push is rejected). Branch from `main` (`LS-N-...`), open PR,
-  merge (self-merge allowed — 0 required approvals). Commit subjects `LS-N: ...`, imperative, `Fix ...` for
-  bug fixes (they become release-note lines).
+- **Version-branch flow** (org standard, adopted 2026-08-28 after PR #1 went straight to `main`):
+  `main` is the released state and only receives release PRs. Work happens on the current release
+  branch `vX.Y.Z/main` (now **`v0.1.0/main`**, matching the unreleased `pubspec.yaml` version). Topic
+  branches are `vX.Y.Z/LS-N-topic` off the release branch; PR into the release branch; self-merge allowed
+  (0 required approvals). Never open a work PR against `main`. Release branches are unprotected today (org
+  decision pending — see the handoff in `tkforgeworks/.github`), so check CI is green before merging.
+  No release workflow or version-bump scripts yet: the org's are npm/Electron-only; a Flutter release
+  pipeline is on the org handoff list, and this repo adopts it when it exists.
+- Commit subjects `LS-N: ...`, imperative, `Fix ...` for bug fixes (they become release-note lines).
 - CI contract from repo root: `dart format --output=none --set-exit-if-changed .`, `flutter analyze`,
   `flutter test`. `dart format` ignores analyzer excludes, so `.dart` files under `docs/` must stay
   formatted too.
