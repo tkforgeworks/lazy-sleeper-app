@@ -12,6 +12,7 @@ import 'package:lazy_sleeper_app/api/models/board.dart';
 import 'package:lazy_sleeper_app/api/models/draft.dart';
 import 'package:lazy_sleeper_app/api/providers.dart';
 import 'package:lazy_sleeper_app/app/app.dart';
+import 'package:lazy_sleeper_app/app/log/app_log.dart';
 import 'package:lazy_sleeper_app/app/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -85,10 +86,13 @@ Future<SharedPreferences> pumpApp(
   addTearDown(tester.view.reset);
   SharedPreferences.setMockInitialValues(prefs);
   final store = await SharedPreferences.getInstance();
+  final log = AppLog(echo: false)..install(captureFlutterErrors: false);
+  addTearDown(log.uninstall);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(store),
+        appLogProvider.overrideWithValue(log),
         lazySleeperApiProvider.overrideWithValue(api ?? FakeLazySleeperApi()),
       ],
       child: const LazySleeperApp(),

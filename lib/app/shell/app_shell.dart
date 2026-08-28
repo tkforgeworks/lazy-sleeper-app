@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../router.dart';
 import '../settings/api_address_dialog.dart';
+import '../settings/logs_dialog.dart';
 import '../theme/ls_theme.dart';
 import 'top_nav.dart';
 
@@ -28,7 +29,10 @@ class AppShell extends StatelessWidget {
             TopNav(
               current: current,
               onSelect: select,
-              trailing: const ApiAddressButton(),
+              trailing: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [LogsButton(), ApiAddressButton()],
+              ),
             ),
             Expanded(child: child),
           ],

@@ -1,9 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
 
 import '../app/prefs.dart';
 import 'fixture_api.dart';
 import 'lazy_sleeper_api.dart';
+import 'logging_interceptor.dart';
+
+final _log = Logger('settings');
 
 /// Build-time defaults. Override at build/run time, e.g.
 /// `flutter run --dart-define=LS_API_URL=http://100.x.y.z:8000` for the
@@ -29,12 +33,14 @@ class ApiBaseUrl extends Notifier<String> {
   /// Persists [url] (already validated by [normalizeApiUrl]) and applies it.
   Future<void> set(String url) async {
     await ref.read(sharedPreferencesProvider).setString(prefsKey, url);
+    _log.info('api base url set to $url');
     state = url;
   }
 
   /// Drops the saved value and returns to the build-time default.
   Future<void> reset() async {
     await ref.read(sharedPreferencesProvider).remove(prefsKey);
+    _log.info('api base url reset to $lsApiUrlDefault');
     state = lsApiUrlDefault;
   }
 }
@@ -62,7 +68,7 @@ final dioProvider = Provider<Dio>((ref) {
       receiveTimeout: const Duration(seconds: 15),
       responseType: ResponseType.json,
     ),
-  );
+  )..interceptors.add(LoggingInterceptor());
   ref.onDispose(dio.close);
   return dio;
 });
