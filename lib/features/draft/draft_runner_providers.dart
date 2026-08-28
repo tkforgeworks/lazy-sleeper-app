@@ -1,9 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
 
 import '../../api/lazy_sleeper_api.dart';
 import '../../api/models/draft.dart';
 import '../../api/providers.dart';
 import '../../app/prefs.dart';
+
+final _log = Logger('draft');
 
 /// Drafts the API process currently knows about (`GET /draft`).
 final knownDraftsProvider = FutureProvider<List<DraftSummary>>(
@@ -23,6 +26,7 @@ class DraftId extends Notifier<String> {
   Future<void> set(String id) async {
     final trimmed = id.trim();
     await ref.read(sharedPreferencesProvider).setString(prefsKey, trimmed);
+    _log.info('draft id set to "$trimmed"');
     state = trimmed;
   }
 }
@@ -58,25 +62,35 @@ class DraftRunner extends Notifier<AsyncValue<RunnerOutcome?>> {
   @override
   AsyncValue<RunnerOutcome?> build() => const AsyncData(null);
 
-  Future<void> start(String draftId, {int season = 2026}) => _call(
-    () async => RunnerStarted(
-      await ref
-          .read(lazySleeperApiProvider)
-          .startDraft(draftId, season: season),
-    ),
-  );
+  Future<void> start(String draftId, {int season = 2026}) =>
+      _call('start draft $draftId season=$season', () async {
+        final out = await ref
+            .read(lazySleeperApiProvider)
+            .startDraft(draftId, season: season);
+        _log.info(
+          'runner started: running=${out.running} '
+          'alreadyRunning=${out.alreadyRunning} picksMade=${out.picksMade} '
+          'boardRows=${out.boardRows}',
+        );
+        return RunnerStarted(out);
+      });
 
-  Future<void> stop(String draftId) => _call(
-    () async => RunnerStopped(
-      await ref.read(lazySleeperApiProvider).stopDraft(draftId),
-    ),
-  );
+  Future<void> stop(String draftId) => _call('stop draft $draftId', () async {
+    final out = await ref.read(lazySleeperApiProvider).stopDraft(draftId);
+    _log.info('runner stopped: running=${out.running}');
+    return RunnerStopped(out);
+  });
 
-  Future<void> _call(Future<RunnerOutcome> Function() action) async {
+  Future<void> _call(
+    String what,
+    Future<RunnerOutcome> Function() action,
+  ) async {
+    _log.info(what);
     state = const AsyncLoading();
     try {
       state = AsyncData(await action());
     } on ApiException catch (e) {
+      _log.warning('$what failed: ${e.message}');
       state = AsyncData(RunnerFailed(e.message));
     }
     ref.invalidate(knownDraftsProvider);

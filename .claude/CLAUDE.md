@@ -47,6 +47,13 @@ never reimplements logic. Keep this file in sync as decisions land.
 - Layout: `lib/app/` (theme, router, shell, settings, widgets/atoms) · `lib/api/` · `lib/features/<feature>/`.
   Client-side logic is limited to what the handoff assigns the client (sort, position filter, tier breaks,
   formatting — `board_view.dart`); numbers are never recomputed.
+- Logging: `package:logging`, captured by `lib/app/log/app_log.dart` (`AppLog`, injected via
+  `appLogProvider` like prefs). Loggers are named per area (`api`, `draft`, `settings`, `app`); the dio
+  `LoggingInterceptor` logs one INFO line per request and bodies only at FINE. Desktop/mobile also write a
+  per-session file (`%APPDATA%\<org>\<app>\logs\lazy-sleeper-app-<stamp>.log`, newest 10 kept, via the
+  conditional `log_file.dart` export — web is in-memory only). The Logs button (next to the gear) shows a live
+  tail with Copy / Save… / Verbose toggle; `--dart-define=LS_LOG_LEVEL=FINE` sets the start-up level. Tests
+  install an `AppLog(echo: false)` in `pumpApp` with Flutter error hooks off (the test binding owns them).
 - Board rules learned from real data: `tier` is **per position** and runs past 5, so tier breaks are drawn
   only under a position filter and only for tiers 1–5; `TierBadge` clamps deeper tiers to the T5 colour.
   ~65% of rows have `tier: null` (below tiered depth) → "—".
