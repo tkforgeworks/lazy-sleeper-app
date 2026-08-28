@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../router.dart';
+import '../settings/api_address_dialog.dart';
 import '../theme/ls_theme.dart';
 import 'top_nav.dart';
 
@@ -24,7 +25,11 @@ class AppShell extends StatelessWidget {
       return Scaffold(
         body: Column(
           children: [
-            TopNav(current: current, onSelect: select),
+            TopNav(
+              current: current,
+              onSelect: select,
+              trailing: const ApiAddressButton(),
+            ),
             Expanded(child: child),
           ],
         ),

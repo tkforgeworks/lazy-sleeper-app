@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../app/prefs.dart';
 import 'fixture_api.dart';
 import 'lazy_sleeper_api.dart';
 
@@ -15,16 +16,43 @@ const lsApiUrlDefault = String.fromEnvironment(
 );
 const lsFakeData = bool.fromEnvironment('LS_FAKE_DATA');
 
-/// The API base URL. Starts at [lsApiUrlDefault]; an in-app settings sheet
-/// will [set] it without a rebuild (LS-39 acceptance criterion).
+/// The API base URL: the value saved in-app if there is one, else
+/// [lsApiUrlDefault]. Changing it here re-creates the client and re-fetches.
 class ApiBaseUrl extends Notifier<String> {
-  @override
-  String build() => lsApiUrlDefault;
+  static const prefsKey = 'api_base_url';
 
-  void set(String url) => state = url;
+  @override
+  String build() =>
+      ref.watch(sharedPreferencesProvider).getString(prefsKey) ??
+      lsApiUrlDefault;
+
+  /// Persists [url] (already validated by [normalizeApiUrl]) and applies it.
+  Future<void> set(String url) async {
+    await ref.read(sharedPreferencesProvider).setString(prefsKey, url);
+    state = url;
+  }
+
+  /// Drops the saved value and returns to the build-time default.
+  Future<void> reset() async {
+    await ref.read(sharedPreferencesProvider).remove(prefsKey);
+    state = lsApiUrlDefault;
+  }
 }
 
 final apiBaseUrlProvider = NotifierProvider<ApiBaseUrl, String>(ApiBaseUrl.new);
+
+/// Trims and validates an API address; returns the canonical form or null
+/// when it is not an absolute http(s) URL with a host. No trailing slash.
+String? normalizeApiUrl(String input) {
+  final text = input.trim();
+  final uri = Uri.tryParse(text);
+  if (uri == null || !uri.isAbsolute || uri.host.isEmpty) return null;
+  if (uri.scheme != 'http' && uri.scheme != 'https') return null;
+  final path = uri.path.endsWith('/')
+      ? uri.path.substring(0, uri.path.length - 1)
+      : uri.path;
+  return uri.replace(path: path, query: null, fragment: null).toString();
+}
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(

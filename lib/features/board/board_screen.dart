@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/lazy_sleeper_api.dart';
 import '../../api/models/board.dart';
+import '../../app/settings/api_address_dialog.dart';
 import '../../app/theme/ls_theme.dart';
 import '../../app/widgets/atoms.dart';
 import 'board_providers.dart';
@@ -24,8 +25,11 @@ class BoardScreen extends ConsumerWidget {
     final board = ref.watch(boardProvider);
     return board.when(
       loading: () => const _Loading(),
-      error: (e, _) =>
-          _Error(error: e, onRetry: () => ref.invalidate(boardProvider)),
+      error: (e, _) => _Error(
+        error: e,
+        onRetry: () => ref.invalidate(boardProvider),
+        onChangeAddress: () => showApiAddressDialog(context),
+      ),
       data: (data) =>
           context.isDesktop ? _Desktop(meta: data.board) : const _Mobile(),
     );
@@ -90,10 +94,15 @@ class _Loading extends StatelessWidget {
 }
 
 class _Error extends StatelessWidget {
-  const _Error({required this.error, required this.onRetry});
+  const _Error({
+    required this.error,
+    required this.onRetry,
+    required this.onChangeAddress,
+  });
 
   final Object error;
   final VoidCallback onRetry;
+  final VoidCallback onChangeAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +133,23 @@ class _Error extends StatelessWidget {
               style: LsText.caption.copyWith(color: ls.textSecondary),
             ),
             const SizedBox(height: LsSpacing.lg),
-            SecondaryButton(label: 'Try again', onPressed: onRetry),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SecondaryButton(label: 'Try again', onPressed: onRetry),
+                const SizedBox(width: LsSpacing.sm),
+                TextButton(
+                  onPressed: onChangeAddress,
+                  child: Text(
+                    'Change address',
+                    style: LsText.button.copyWith(
+                      fontSize: 13,
+                      color: ls.purplePrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

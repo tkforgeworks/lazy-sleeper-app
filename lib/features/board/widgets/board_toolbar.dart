@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/settings/api_address_dialog.dart';
 import '../../../app/theme/ls_theme.dart';
 import '../../../app/widgets/atoms.dart';
 import '../board_providers.dart';
@@ -96,8 +97,13 @@ class BoardToolbar extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   child: rankBy,
                 ),
-                const SizedBox(height: LsSpacing.xs),
-                countText,
+                Row(
+                  children: [
+                    countText,
+                    const Spacer(),
+                    const ApiAddressButton(),
+                  ],
+                ),
               ],
             ),
     );
