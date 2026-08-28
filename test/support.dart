@@ -1,5 +1,6 @@
 // Shared widget-test plumbing.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ import 'package:lazy_sleeper_app/api/fixture_api.dart';
 import 'package:lazy_sleeper_app/api/lazy_sleeper_api.dart';
 import 'package:lazy_sleeper_app/api/models/board.dart';
 import 'package:lazy_sleeper_app/api/models/draft.dart';
+import 'package:lazy_sleeper_app/api/models/draft_state.dart';
 import 'package:lazy_sleeper_app/api/providers.dart';
 import 'package:lazy_sleeper_app/app/app.dart';
 import 'package:lazy_sleeper_app/app/log/app_log.dart';
@@ -31,13 +33,20 @@ class RepoBundle extends CachingAssetBundle {
 /// the bundled fixture for the board and an idle draft runner. Assign a
 /// callback that throws [ApiException] to simulate failures.
 class FakeLazySleeperApi implements LazySleeperApi {
-  FakeLazySleeperApi({this.onBoard, this.onDrafts, this.onStart, this.onStop});
+  FakeLazySleeperApi({
+    this.onBoard,
+    this.onDrafts,
+    this.onStart,
+    this.onStop,
+    this.onState,
+  });
 
   final _fixture = FixtureLazySleeperApi(bundle: RepoBundle());
   Future<BoardResponse> Function()? onBoard;
   Future<List<DraftSummary>> Function()? onDrafts;
   Future<DraftStartOut> Function(String id, int season)? onStart;
   Future<DraftStopOut> Function(String id)? onStop;
+  Future<DraftState> Function(String id, String? position, int? limit)? onState;
 
   @override
   Future<BoardResponse> board({
@@ -65,7 +74,24 @@ class FakeLazySleeperApi implements LazySleeperApi {
   @override
   Future<DraftStopOut> stopDraft(String draftId) =>
       onStop?.call(draftId) ?? _fixture.stopDraft(draftId);
+
+  @override
+  Future<DraftState> draftState(
+    String draftId, {
+    String? position,
+    int? limit,
+  }) =>
+      onState?.call(draftId, position, limit) ??
+      _fixture.draftState(draftId, position: position, limit: limit);
 }
+
+/// A `/state` capture straight from the repo, for tests that want a
+/// concrete payload; see `FixtureLazySleeperApi.draftState*`.
+DraftState loadDraftState([
+  String asset = FixtureLazySleeperApi.draftStateMyTurn,
+]) => DraftState.fromJson(
+  jsonDecode(File(asset).readAsStringSync()) as Map<String, dynamic>,
+);
 
 /// An API whose board fetch fails as if the server were unreachable.
 FakeLazySleeperApi downApi() => FakeLazySleeperApi(

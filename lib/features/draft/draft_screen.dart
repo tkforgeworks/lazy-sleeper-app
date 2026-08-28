@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/models/draft.dart';
 import '../../app/theme/ls_theme.dart';
 import '../../app/widgets/atoms.dart';
+import 'draft_live_providers.dart';
 import 'draft_runner_providers.dart';
 
 /// Draft Command Center, first slice: control the backend's draft runner
@@ -36,6 +37,8 @@ class _DraftScreenState extends ConsumerState<DraftScreen> {
     if (id.isEmpty) return;
     await ref.read(draftIdProvider.notifier).set(id);
     await ref.read(draftRunnerProvider.notifier).start(id);
+    // The poller would catch up on its next tick; no need to wait for it.
+    await ref.read(draftLiveProvider.notifier).refresh();
   }
 
   Future<void> _stop() async {
@@ -121,6 +124,8 @@ class _DraftScreenState extends ConsumerState<DraftScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: LsSpacing.lg),
+              const _Card(title: 'LIVE STATE', child: _LiveStrip()),
               const SizedBox(height: LsSpacing.lg),
               _Card(
                 title: 'KNOWN TO THE API',
@@ -265,6 +270,62 @@ class _Outcome extends StatelessWidget {
                 style: LsText.caption.copyWith(color: ls.errorText),
               ),
             ),
+          ],
+        );
+    }
+  }
+}
+
+/// First slice of the live view: proves the `/state` poll is up and what
+/// it last said. The full Command Center replaces this card.
+class _LiveStrip extends ConsumerWidget {
+  const _LiveStrip();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ls = context.ls;
+    final live = ref.watch(draftLiveProvider);
+    final caption = LsText.caption.copyWith(color: ls.textSecondary);
+    switch (live.phase) {
+      case DraftLivePhase.idle:
+        return Text('No draft id yet.', style: caption);
+      case DraftLivePhase.connecting:
+        return LiveDot(color: ls.warningPrimary, label: 'Polling /state…');
+      case DraftLivePhase.notRunning:
+        return LiveDot(
+          color: ls.textSecondary,
+          label: 'Runner not up for this id. Start it above.',
+        );
+      case DraftLivePhase.live || DraftLivePhase.error:
+        final s = live.state;
+        final clock = s?.clock;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LiveDot(
+              color: live.phase == DraftLivePhase.live
+                  ? ls.successPrimary
+                  : ls.errorPrimary,
+              label: live.phase == DraftLivePhase.live
+                  ? 'Live · ${s?.poller.status ?? '—'}'
+                  : 'Poll failed; showing the last good state',
+            ),
+            if (clock != null) ...[
+              const SizedBox(height: LsSpacing.xs),
+              Text(
+                'Pick ${clock.currentPick}'
+                '${clock.round == null ? '' : ' · round ${clock.round}'}'
+                ' · on the clock: '
+                '${clock.onTheClockTeamName ?? 'slot ${clock.onTheClock ?? '—'}'}'
+                ' · ${clock.myTurn ? 'YOUR TURN' : '${clock.picksUntilMyTurn ?? '—'} until you'}'
+                ' · ${s!.rows.length} rows · seq ${s.recompute.seq}',
+                style: caption,
+              ),
+            ],
+            if (live.error case final error?) ...[
+              const SizedBox(height: LsSpacing.xs),
+              Text(error, style: LsText.caption.copyWith(color: ls.errorText)),
+            ],
           ],
         );
     }
