@@ -19,10 +19,17 @@ never reimplements logic. Keep this file in sync as decisions land.
   narrow derived providers, `settings_screen.dart` the screen and the gear `SettingsButton`; the old
   API-address dialog is gone; theme and log level persist; the poll notifier reschedules on an interval
   change instead of rebuilding, so the last good state stays up);
-  **LS-73 release packaging (Inno Setup installer + signed APK + release PR) — pending** (no Flutter release
-  workflow in the org yet — see the untracked handoff `C:\Code\.github\HANDOFF-flutter-version-branch-flow.md`,
-  items 5–6, for the Phase B automation). After draft night: backend LS-58..61 (player detail, garage, season,
-  ForgeModel knobs) and their screens.
+  **LS-73 release packaging — Phase A done** (`scripts/release/build-windows.ps1` → Inno Setup installer +
+  zip, `build-android.ps1` → keystore-signed APK, `new-android-keystore.ps1`; `windows/installer/lazy-sleeper.iss`;
+  icons from `assets/brand/app_icon*.png` via `flutter_launcher_icons`; artifacts in the gitignored
+  `release/`; see README "Releasing"). Inno Setup 6 is installed per-user on Tim's machine
+  (`%LOCALAPPDATA%\Programs\Inno Setup 6`). The Android keystore + `android/key.properties` were generated
+  2026-08-28 and are gitignored — **Tim must copy them into 1Password**; never regenerate a shipped key.
+  The installer is unsigned (SmartScreen warning documented). Left for Tim: open the release PR
+  `v0.1.0/main` → `main` and publish the `v0.1.0` GitHub release with the two artifacts. **Phase B** (org
+  `release-flutter.yml` + pubspec adapter for the rc/release scripts) is the untracked handoff
+  `C:\Code\.github\HANDOFF-flutter-version-branch-flow.md`, items 5–6; adopt it here when it exists. After
+  draft night: backend LS-58..61 (player detail, garage, season, ForgeModel knobs) and their screens.
 
 - Flutter app (LS-39): scaffold, theme, API client, Big Board screen, API-address setting, draft runner
   controls (`GET /draft`, `POST /draft/{id}/start|stop`; the draft id is remembered in prefs), and the live
@@ -108,7 +115,9 @@ never reimplements logic. Keep this file in sync as decisions land.
   (0 required approvals). Never open a work PR against `main`. Release branches are unprotected today (org
   decision pending — see the handoff in `tkforgeworks/.github`), so check CI is green before merging.
   No release workflow or version-bump scripts yet: the org's are npm/Electron-only; a Flutter release
-  pipeline is on the org handoff list, and this repo adopts it when it exists.
+  pipeline is on the org handoff list, and this repo adopts it when it exists. Until then releases are
+  built locally with `scripts/release/*.ps1` (LS-73) and uploaded to the GitHub release by hand; bump
+  `pubspec.yaml` `version: X.Y.Z+BUILD` by hand (`+BUILD` = Android versionCode, monotonic).
 - Commit subjects `LS-N: ...`, imperative, `Fix ...` for bug fixes (they become release-note lines).
 - CI contract from repo root: `dart format --output=none --set-exit-if-changed .`, `flutter analyze`,
   `flutter test`. `dart format` ignores analyzer excludes, so `.dart` files under `docs/` must stay
