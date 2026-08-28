@@ -48,3 +48,6 @@ fonts). `docs/LS-39-plan.md` is the implementation plan for the first increments
 [`tkforgeworks/.github/docs/branch-protection-ruleset.md`](https://github.com/tkforgeworks/.github/blob/main/docs/branch-protection-ruleset.md)):
 no direct pushes, no force-push/delete, all changes via PR, no bypass. CI consumes the org's reusable
 Flutter workflow. Commit subjects follow `LS-N: ...` (Jira project `LS`).
+
+Work flows through a version branch: topic branches (`vX.Y.Z/LS-N-topic`) are PR'd into the current release
+branch (`vX.Y.Z/main`, currently `v0.1.0/main`), and the release branch reaches `main` via a release PR.
