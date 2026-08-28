@@ -14,10 +14,10 @@ never reimplements logic. Keep this file in sync as decisions land.
   team, recent picks) is the only draft-night blocker. Draft night: Fri 2026-09-04; the backend's
   `/draft.html` is the guaranteed fallback.
 - `main` is protected by the org ruleset (PR-only, no bypass). CI (`.github/workflows/ci.yml`) consumes
-  the org reusable `ci-flutter.yml`; the check is named **`ci / ci`**. **TODO once it has reported on a
-  PR:** PATCH the ruleset to require that context (`tkforgeworks/.github/docs/branch-protection-ruleset.md`,
-  "Updating an existing ruleset"). The reusable workflow is an unvalidated stub — expect to adjust it in
-  the org repo if the first run misbehaves.
+  the org reusable `ci-flutter.yml`; the check **`ci / ci`** is required by the ruleset (strict, added
+  2026-08-28 after its first green run on PR #1). Note: the GitHub ruleset update endpoint is `PUT`, not
+  `PATCH` as `tkforgeworks/.github/docs/branch-protection-ruleset.md` says — fix that doc when next in
+  the org repo. `ci-flutter.yml` was a stub; this repo is its first (passing) adopter.
 - Plan and design handoff: `docs/LS-39-plan.md`, `docs/design_handoff_lazy_sleeper/` (README, COMPONENTS,
   HTML prototypes). Product decisions: panic overlay is a highlight only, the app never submits a pick;
   ForgeModel column is a stub until it ships.
