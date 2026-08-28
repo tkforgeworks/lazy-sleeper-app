@@ -11,9 +11,13 @@ never reimplements logic. Keep this file in sync as decisions land.
   picking every few seconds the view feels very slow — it redraws only on `recompute.seq` every 2 s poll and
   the backend recompute takes ~50–100 ms per pick, so the lag is mostly the poll cadence. **Follow-up: a
   poll/refresh setting** (Tim will tweak once a settings screen exists); not draft-night blocking.
-- Open items after this: v0.1.0 release path (no Flutter release workflow in the org yet — see the untracked
-  handoff `C:\Code\.github\HANDOFF-flutter-version-branch-flow.md`), backend gaps LS-57..61 (BYE column,
-  player detail, garage, season), settings screen.
+- **app/0.1.0 tickets** (Jira fixVersion `app/0.1.0`, epic LS-6, created 2026-08-28; one topic branch each):
+  **LS-74 BYE column — done** (`bye` on `BoardRow`, BYE cells on the Big Board and best-available tables,
+  sub-line on mobile rows / drawer / recommendation card); **LS-72 settings screen + poll interval — pending**;
+  **LS-73 release packaging (Inno Setup installer + signed APK + release PR) — pending** (no Flutter release
+  workflow in the org yet — see the untracked handoff `C:\Code\.github\HANDOFF-flutter-version-branch-flow.md`,
+  items 5–6, for the Phase B automation). After draft night: backend LS-58..61 (player detail, garage, season,
+  ForgeModel knobs) and their screens.
 
 - Flutter app (LS-39): scaffold, theme, API client, Big Board screen, API-address setting, draft runner
   controls (`GET /draft`, `POST /draft/{id}/start|stop`; the draft id is remembered in prefs), and the live
@@ -37,7 +41,8 @@ never reimplements logic. Keep this file in sync as decisions land.
   `recent_picks`) and the LS-69/70 hang fixes are in. `/board`
   rows are untyped in its OpenAPI until LS-55, so `lib/api/models/board.dart` is transcribed by hand from
   `lazy-sleeper/docs/api/GUIDE.md`; `/state` is typed (`DraftStateOut`) and `draft_state.dart` mirrors it.
-  Remaining backend gaps: LS-57..61 (none block draft night). Draft night: Fri 2026-09-04; the backend's
+  LS-57 (`bye` on `/board` and `/state` rows) is in; remaining backend gaps LS-58..61 (none block draft
+  night). Draft night: Fri 2026-09-04; the backend's
   `/draft.html` is the guaranteed fallback. `startDraft` uses a 60 s receive timeout (pre-draft load).
 - `main` is protected by the org ruleset (PR-only, no bypass). CI (`.github/workflows/ci.yml`) consumes
   the org reusable `ci-flutter.yml`; the check **`ci / ci`** is required by the ruleset (strict, added
@@ -57,7 +62,9 @@ never reimplements logic. Keep this file in sync as decisions land.
   provider overrides). `boardProvider` sets `retry: null` — Riverpod 3 otherwise retries failures with
   backoff for ~1 min while showing loading. Routing: `go_router` `ShellRoute`, `NoTransitionPage`.
 - API: `lib/api/` — `LazySleeperApi` interface, `HttpLazySleeperApi` (dio), `FixtureLazySleeperApi`
-  (bundled `assets/fixtures/board.json`, a live capture trimmed to 53 rows). `ApiException` wraps
+  (bundled `assets/fixtures/board.json`, a live capture trimmed to 53 **curated** rows — ranks 1–608, not
+  contiguous; tests assert on its names and values, so when the backend adds a field merge it in by
+  `sleeper_id` from the live `/board` as LS-74 did for `bye`, rather than recapturing). `ApiException` wraps
   transport/status/parse failures. Models are `freezed` + `json_serializable`; **generated files are
   committed** (CI runs no build_runner) — after editing a model run
   `dart run build_runner build --delete-conflicting-outputs`.

@@ -65,6 +65,16 @@ class RecommendationCard extends StatelessWidget {
                     color: ls.purplePrimary,
                   ),
                 ),
+                if (rec != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    rowSub(rec),
+                    style: LsText.caption.copyWith(
+                      fontSize: 10.5,
+                      color: ls.textSecondary,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   rec == null

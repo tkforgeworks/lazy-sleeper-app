@@ -75,7 +75,11 @@ void main() {
     // The top pick shows in the recommendation card and as row 1.
     expect(find.text('Nico Collins'), findsNWidgets(2));
     final first = find.text('Nico Collins').last;
+    // The card's sub-line carries the bye; the table has a BYE column and
+    // its sub-line drops it.
     expect(find.text('HOU · WR8 · bye 8'), findsOneWidget);
+    expect(find.text('HOU · WR8'), findsOneWidget);
+    expect(find.text('BYE'), findsOneWidget);
     expect(find.byType(SurvivalBar), findsWidgets);
     expect(find.text('RUN'), findsWidgets);
     expect(

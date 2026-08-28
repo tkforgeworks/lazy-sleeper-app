@@ -6,7 +6,7 @@ import '../../../app/widgets/atoms.dart';
 import '../draft_view.dart';
 
 /// Desktop best-available table, `pick_score` order as served: # / TIER /
-/// PLAYER / POS / ENS / VORP / SURVIVAL → next pick / RUN.
+/// PLAYER / POS / BYE / ENS / VORP / SURVIVAL → next pick / RUN.
 class BestAvailableTable extends StatelessWidget {
   const BestAvailableTable({super.key, required this.state});
 
@@ -46,6 +46,7 @@ class _Cols {
   static const index = 34.0;
   static const tier = 46.0;
   static const pos = 44.0;
+  static const bye = 42.0;
   static const ens = 60.0;
   static const vorp = 60.0;
   static const survival = 150.0;
@@ -82,6 +83,7 @@ class _Header extends StatelessWidget {
           _cell(_Cols.tier, h('TIER'), align: Alignment.centerLeft),
           Expanded(child: h('PLAYER')),
           _cell(_Cols.pos, h('POS'), align: Alignment.centerLeft),
+          _cell(_Cols.bye, h('BYE')),
           _cell(_Cols.ens, h('ENS')),
           _cell(_Cols.vorp, h('VORP')),
           _cell(
@@ -155,7 +157,7 @@ class _RowState extends State<_Row> {
                   ),
                   const SizedBox(width: 7),
                   Text(
-                    rowSub(r),
+                    rowSub(r, withBye: false),
                     style: LsText.caption.copyWith(
                       fontSize: 9.5,
                       color: ls.textSecondary,
@@ -174,6 +176,13 @@ class _RowState extends State<_Row> {
               ),
             ),
             _cell(_Cols.pos, PosChip(r.position), align: Alignment.centerLeft),
+            _cell(
+              _Cols.bye,
+              Text(
+                fmtBye(r.bye),
+                style: LsText.dataCell.copyWith(color: ls.textPrimary),
+              ),
+            ),
             _cell(
               _Cols.ens,
               Text(

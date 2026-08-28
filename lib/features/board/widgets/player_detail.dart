@@ -47,7 +47,7 @@ class PlayerDetail extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '${rowSub(r)} · bye $dash · rank ${r.rank}',
+                        '${rowSub(r, withBye: true)} · rank ${r.rank}',
                         style: LsText.caption.copyWith(
                           fontSize: 11,
                           color: ls.textSecondary,
