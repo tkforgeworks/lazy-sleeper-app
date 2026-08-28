@@ -55,12 +55,16 @@ double? timerFraction(DraftClock clock, int? seconds) {
   return (seconds / total).clamp(0, 1).toDouble();
 }
 
-/// Panic threshold from the handoff: my turn and 30 s or less. A null
-/// countdown never panics — no timer, no pressure.
+/// Panic threshold from the handoff: my turn and 30 s or less (the
+/// Settings screen can move it). A null countdown never panics — no timer,
+/// no pressure.
 const panicThresholdS = 30;
 
-bool isPanic(DraftClock clock, int? seconds) =>
-    clock.myTurn && seconds != null && seconds <= panicThresholdS;
+bool isPanic(
+  DraftClock clock,
+  int? seconds, {
+  int threshold = panicThresholdS,
+}) => clock.myTurn && seconds != null && seconds <= threshold;
 
 /// Which pick the user has waved the panic overlay away for; it comes
 /// back with the next pick.

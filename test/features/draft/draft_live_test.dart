@@ -4,6 +4,7 @@ import 'package:lazy_sleeper_app/api/fixture_api.dart';
 import 'package:lazy_sleeper_app/api/lazy_sleeper_api.dart';
 import 'package:lazy_sleeper_app/api/models/draft.dart';
 import 'package:lazy_sleeper_app/app/app.dart';
+import 'package:lazy_sleeper_app/app/settings/app_settings.dart';
 import 'package:lazy_sleeper_app/features/draft/draft_live_providers.dart';
 import 'package:lazy_sleeper_app/features/draft/draft_runner_providers.dart';
 
@@ -187,6 +188,70 @@ void main() {
     );
     expect(find.text('poll failed'), findsOneWidget);
     expect(find.textContaining('Retrying with back-off'), findsOneWidget);
+  });
+
+  testWidgets('a new poll interval reschedules without blanking the state', (
+    tester,
+  ) async {
+    var calls = 0;
+    final api = FakeLazySleeperApi(
+      onState: (id, position, limit) async {
+        calls++;
+        return loadDraftState();
+      },
+    );
+    await pumpApp(
+      tester,
+      desktopSize,
+      api: api,
+      prefs: {DraftId.prefsKey: '42'},
+    );
+    await openDraft(tester);
+    final before = _container(tester).read(draftLiveProvider);
+    expect(calls, 1);
+
+    await _container(tester)
+        .read(appSettingsProvider.notifier)
+        .setPollInterval(1);
+    await tester.pump();
+
+    final after = _container(tester).read(draftLiveProvider);
+    expect(identical(after.state, before.state), isTrue, reason: 'kept');
+    expect(after.phase, DraftLivePhase.live);
+    expect(find.text('Pick 2.11'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(calls, 2, reason: 'next poll came 1 s after the change');
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    expect(calls, 3);
+  });
+
+  testWidgets('the row limit setting is what /state is asked for', (
+    tester,
+  ) async {
+    final limits = <int?>[];
+    final api = FakeLazySleeperApi(
+      onState: (id, position, limit) async {
+        limits.add(limit);
+        return loadDraftState();
+      },
+    );
+    await pumpApp(
+      tester,
+      desktopSize,
+      api: api,
+      prefs: {DraftId.prefsKey: '42', AppSettings.rowLimitKey: 20},
+    );
+    await openDraft(tester);
+    expect(limits, [20]);
+
+    await _container(tester).read(appSettingsProvider.notifier).setRowLimit(60);
+    await tester.pump(_tick);
+    await tester.pump();
+    expect(limits, [20, 60]);
+    expect(find.text('Pick 2.11'), findsOneWidget);
   });
 
   testWidgets('no id, no polling', (tester) async {

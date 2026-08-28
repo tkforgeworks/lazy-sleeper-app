@@ -21,10 +21,13 @@ Flutter app on Windows, web and Android, covering LS-39 in full:
   that happens in Sleeper.** The runner (`POST /draft/{id}/start|stop`) is driven from the same screen.
 - **Logs** — `package:logging` capture with a per-session file on desktop/mobile and an in-app Logs view
   (copy / save / verbose), for reading alongside the backend's log during a live test.
+- **Settings** (gear) — API address, `/state` poll interval (1–5 s, default 2), panic threshold, best-available
+  depth, per-alert switches, theme (dark / light / system) and log level. Saved across launches, applied
+  live; "Reset to defaults" clears the lot.
 
-Known: polling is 2 s and the view redraws on the backend's `recompute.seq`, so a mock full of CPU drafters
-feels laggy; a poll/refresh setting is a follow-up. The draft-night fallback remains the backend's own
-`/draft.html`.
+The view redraws on the backend's `recompute.seq`, so how quickly a new pick shows up is mostly the poll
+interval — drop it to 1 s on draft night if the room is fast. The draft-night fallback remains the backend's
+own `/draft.html`.
 
 ## Running it
 
@@ -37,9 +40,10 @@ flutter run -d windows --dart-define=LS_API_URL=http://100.x.y.z:8000   # e.g. t
 flutter run -d chrome --dart-define=LS_FAKE_DATA=true                   # bundled fixture, no backend
 ```
 
-The API address can also be changed in-app (gear icon) and is remembered across launches, as is the draft
-id. `--dart-define=LS_LOG_LEVEL=FINE` starts with verbose logging (request/response bodies); the Logs view
-(icon beside the gear) can toggle it at runtime and shows where the session log file is.
+The API address can also be changed in-app (gear → Settings) and is remembered across launches, as is the
+draft id. `--dart-define=LS_LOG_LEVEL=FINE` sets the start-up log level; the Verbose switch in Settings (or
+the Logs view, icon beside the gear) overrides it and is remembered. The Logs view shows where the session
+log file is.
 
 Draft night: start `lazy serve`, open Draft, enter the Sleeper draft id, **Start runner** before the room
 opens, and leave the tab there. The runner is polled only while it is up — a stopped, complete or unknown

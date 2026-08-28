@@ -3,6 +3,7 @@
 // recomputes a number the backend owns.
 
 import '../../api/models/draft_state.dart';
+import '../../app/settings/app_settings.dart';
 
 const dash = '—';
 
@@ -174,12 +175,14 @@ const alertDepth = 12;
 
 /// Alerts from the backend's signals on the top rows, in a fixed order:
 /// tier cliff (warning), positional run (info), value faller (success),
-/// injury watch (error). At most one of each.
-List<DraftAlert> alertsFor(DraftState s) {
+/// injury watch (error). At most one of each; only the [enabled] kinds.
+List<DraftAlert> alertsFor(DraftState s, {Set<AlertKind> enabled = allAlerts}) {
   final top = s.rows.take(alertDepth).toList();
   final alerts = <DraftAlert>[];
 
-  final cliff = top.where((r) => r.cliff).firstOrNull;
+  final cliff = enabled.contains(AlertKind.cliff)
+      ? top.where((r) => r.cliff).firstOrNull
+      : null;
   if (cliff != null) {
     final gap = cliff.gapToNext == null
         ? ''
@@ -195,7 +198,9 @@ List<DraftAlert> alertsFor(DraftState s) {
     );
   }
 
-  final run = top.where((r) => r.run).firstOrNull;
+  final run = enabled.contains(AlertKind.run)
+      ? top.where((r) => r.run).firstOrNull
+      : null;
   if (run != null) {
     alerts.add(
       DraftAlert(
@@ -208,9 +213,11 @@ List<DraftAlert> alertsFor(DraftState s) {
     );
   }
 
-  final fallers = top.where(
-    (r) => r.adpFlag == 'value' && r.adpDelta != null && r.adp != null,
-  );
+  final fallers = enabled.contains(AlertKind.value)
+      ? top.where(
+          (r) => r.adpFlag == 'value' && r.adpDelta != null && r.adp != null,
+        )
+      : const <DraftRow>[];
   if (fallers.isNotEmpty) {
     final f = fallers.reduce((a, b) => a.adpDelta! >= b.adpDelta! ? a : b);
     alerts.add(
@@ -224,7 +231,9 @@ List<DraftAlert> alertsFor(DraftState s) {
     );
   }
 
-  final hurt = top.where((r) => r.injuryStatus != null).firstOrNull;
+  final hurt = enabled.contains(AlertKind.injury)
+      ? top.where((r) => r.injuryStatus != null).firstOrNull
+      : null;
   if (hurt != null) {
     alerts.add(
       DraftAlert(

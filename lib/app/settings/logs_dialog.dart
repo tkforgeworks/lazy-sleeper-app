@@ -10,6 +10,7 @@ import 'package:logging/logging.dart';
 import '../log/app_log.dart';
 import '../theme/ls_theme.dart';
 import '../widgets/atoms.dart';
+import 'app_settings.dart';
 
 /// Opens [LogsDialog]. Sits next to the API-address gear.
 class LogsButton extends StatelessWidget {
@@ -127,7 +128,10 @@ class _LogsDialogState extends ConsumerState<LogsDialog> {
                   const SizedBox(width: LsSpacing.xs),
                   Switch(
                     value: log.verbose,
-                    onChanged: (on) => log.verbose = on,
+                    // Through the setting, so it is saved for next launch.
+                    onChanged: (on) => ref
+                        .read(appSettingsProvider.notifier)
+                        .setVerboseLog(on),
                   ),
                 ],
               ),

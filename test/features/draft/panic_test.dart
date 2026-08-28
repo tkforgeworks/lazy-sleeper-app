@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lazy_sleeper_app/api/fixture_api.dart';
+import 'package:lazy_sleeper_app/app/settings/app_settings.dart';
 import 'package:lazy_sleeper_app/features/draft/draft_clock.dart';
 import 'package:lazy_sleeper_app/features/draft/widgets/alert_cards.dart';
 import 'package:lazy_sleeper_app/features/draft/widgets/panic_overlay.dart';
@@ -66,6 +67,39 @@ void main() {
       findsNothing,
       reason: 'dismissed for this pick',
     );
+  });
+
+  testWidgets('the panic threshold setting moves the trigger', (tester) async {
+    now = deadline.subtract(const Duration(seconds: 46));
+    await pumpLive(
+      tester,
+      desktopSize,
+      myTurn,
+      overrides: [frozen],
+      prefs: {AppSettings.panicThresholdKey: 45},
+    );
+    expect(find.byType(PanicOverlay), findsNothing);
+
+    now = deadline.subtract(const Duration(seconds: 45));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(PanicOverlay), findsOneWidget);
+    expect(find.text('45S · YOU ARE ON THE CLOCK'), findsOneWidget);
+  });
+
+  testWidgets('alert switches hide their cards', (tester) async {
+    await pumpLive(
+      tester,
+      desktopSize,
+      mid,
+      overrides: [frozen],
+      prefs: {
+        AppSettings.alertsOffKey: ['cliff', 'injury'],
+      },
+    );
+
+    expect(find.text('Tier cliff at RB'), findsNothing);
+    expect(find.text('Injury watch'), findsNothing);
   });
 
   testWidgets('no panic when it is not my turn', (tester) async {

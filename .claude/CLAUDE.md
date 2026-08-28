@@ -9,11 +9,16 @@ never reimplements logic. Keep this file in sync as decisions land.
 - **LS-39 is functionally complete on `v0.1.0/main`** (PRs #1–#9). Live-tested by Tim on a Sleeper mock
   with the logging build: runner, Command Center, clock, no stale polling. Observation: with CPU drafters
   picking every few seconds the view feels very slow — it redraws only on `recompute.seq` every 2 s poll and
-  the backend recompute takes ~50–100 ms per pick, so the lag is mostly the poll cadence. **Follow-up: a
-  poll/refresh setting** (Tim will tweak once a settings screen exists); not draft-night blocking.
+  the backend recompute takes ~50–100 ms per pick, so the lag is mostly the poll cadence — hence the poll
+  interval setting (LS-72); 1 s is safe because `/state` is `host.state()` serialising the engine's cached
+  advice, not a recompute or a Sleeper call (verified 2026-08-28 in `lazy_sleeper/draft/host.py`).
 - **app/0.1.0 tickets** (Jira fixVersion `app/0.1.0`, epic LS-6, created 2026-08-28; one topic branch each):
   **LS-74 BYE column — done** (`bye` on `BoardRow`, BYE cells on the Big Board and best-available tables,
-  sub-line on mobile rows / drawer / recommendation card); **LS-72 settings screen + poll interval — pending**;
+  sub-line on mobile rows / drawer / recommendation card); **LS-72 settings screen — done** (`/settings`
+  route inside the shell, `lib/app/settings/`: `app_settings.dart` holds the persisted `AppSettings` +
+  narrow derived providers, `settings_screen.dart` the screen and the gear `SettingsButton`; the old
+  API-address dialog is gone; theme and log level persist; the poll notifier reschedules on an interval
+  change instead of rebuilding, so the last good state stays up);
   **LS-73 release packaging (Inno Setup installer + signed APK + release PR) — pending** (no Flutter release
   workflow in the org yet — see the untracked handoff `C:\Code\.github\HANDOFF-flutter-version-branch-flow.md`,
   items 5–6, for the Phase B automation). After draft night: backend LS-58..61 (player detail, garage, season,
@@ -83,7 +88,8 @@ never reimplements logic. Keep this file in sync as decisions land.
   `LoggingInterceptor` logs one INFO line per request and bodies only at FINE. Desktop/mobile also write a
   per-session file (`%APPDATA%\<org>\<app>\logs\lazy-sleeper-app-<stamp>.log`, newest 10 kept, via the
   conditional `log_file.dart` export — web is in-memory only). The Logs button (next to the gear) shows a live
-  tail with Copy / Save… / Verbose toggle; `--dart-define=LS_LOG_LEVEL=FINE` sets the start-up level. Tests
+  tail with Copy / Save… / Verbose toggle; `--dart-define=LS_LOG_LEVEL=FINE` sets the start-up level and the
+  saved `log_verbose` setting (Settings or the Logs toggle) overrides it, applied in `main()`. Tests
   install an `AppLog(echo: false)` in `pumpApp` with Flutter error hooks off (the test binding owns them).
 - Board rules learned from real data: `tier` is **per position** and runs past 5, so tier breaks are drawn
   only under a position filter and only for tiers 1–5; `TierBadge` clamps deeper tiers to the T5 colour.

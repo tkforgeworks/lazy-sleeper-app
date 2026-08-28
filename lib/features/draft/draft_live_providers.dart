@@ -8,21 +8,17 @@ import 'package:logging/logging.dart';
 import '../../api/lazy_sleeper_api.dart';
 import '../../api/models/draft_state.dart';
 import '../../api/providers.dart';
+import '../../app/settings/app_settings.dart';
 import 'draft_runner_providers.dart';
+
+export '../../app/settings/app_settings.dart'
+    show draftPollIntervalProvider, draftStateRowLimitProvider;
 
 final _log = Logger('draft');
 
-/// How often `/state` is polled while the runner is up. The GUIDE says
-/// ~2 s and not faster; the timer ticks locally in between.
-final draftPollIntervalProvider = Provider<Duration>(
-  (_) => const Duration(seconds: 2),
-);
-
-/// Longest wait between retries after failed polls (2 s doubling up to it).
+/// Longest wait between retries after failed polls (the poll interval
+/// doubling up to it).
 const draftPollMaxBackoff = Duration(seconds: 30);
-
-/// Rows requested per poll: enough for the best-available table.
-const draftStateRowLimit = 40;
 
 enum DraftLivePhase {
   /// No draft id yet.
@@ -91,6 +87,10 @@ class DraftLive {
 /// fetched once and then left alone — no retry loop against a dead
 /// runner — until [refresh] (the Start button) kicks it off again. Failed
 /// polls retry with doubling back-off, capped at [draftPollMaxBackoff].
+///
+/// The poll interval and row limit are settings: a change reschedules the
+/// next poll (or reaches it) without rebuilding this notifier, so the last
+/// good state stays on screen.
 class DraftLiveNotifier extends Notifier<DraftLive> {
   Timer? _timer;
   bool _inFlight = false;
@@ -100,7 +100,12 @@ class DraftLiveNotifier extends Notifier<DraftLive> {
   DraftLive build() {
     final id = ref.watch(draftIdProvider);
     final api = ref.watch(lazySleeperApiProvider);
-    ref.watch(draftPollIntervalProvider);
+    ref.listen(draftPollIntervalProvider, (_, next) {
+      if (_timer != null && state.phase == DraftLivePhase.live) {
+        _log.info('live: poll interval now ${next.inSeconds} s');
+        _schedule(api, id, next);
+      }
+    });
     _cancel();
     _failures = 0;
     ref.onDispose(_cancel);
@@ -139,12 +144,19 @@ class DraftLiveNotifier extends Notifier<DraftLive> {
     if (_inFlight || id.isEmpty) return;
     _inFlight = true;
     try {
-      final next = await api.draftState(id, limit: draftStateRowLimit);
+      final next = await api.draftState(
+        id,
+        limit: ref.read(draftStateRowLimitProvider),
+      );
       if (!ref.mounted) return;
       _failures = 0;
       final previous = state.state;
+      // Swap on a new recompute — or on a changed row limit, which the
+      // same recompute answers with a different depth.
       final changed =
-          previous == null || previous.recompute.seq != next.recompute.seq;
+          previous == null ||
+          previous.recompute.seq != next.recompute.seq ||
+          previous.rows.length != next.rows.length;
       if (changed) {
         _log.fine(
           'live: seq ${next.recompute.seq} pick ${next.clock.currentPick} '

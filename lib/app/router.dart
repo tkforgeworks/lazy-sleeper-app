@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/board/board_screen.dart';
 import '../features/draft/draft_screen.dart';
+import 'settings/settings_screen.dart';
 import 'shell/app_shell.dart';
 import 'shell/placeholder_screen.dart';
 
@@ -23,10 +24,9 @@ enum LsSection {
   /// which lands with the first real icon-bearing screen.
   final IconData icon;
 
-  static LsSection fromLocation(String location) => values.firstWhere(
-    (s) => location.startsWith(s.path),
-    orElse: () => board,
-  );
+  /// Null for routes that are not a section (Settings): no pill lights up.
+  static LsSection? fromLocation(String location) =>
+      values.where((s) => location.startsWith(s.path)).firstOrNull;
 }
 
 final routerProvider = Provider<GoRouter>((ref) => buildRouter());
@@ -51,6 +51,14 @@ GoRouter buildRouter() => GoRouter(
           const PlaceholderScreen(
             title: 'Season Monitor',
             aside: 'Waits on LS-60. So does the season.',
+          ),
+        ),
+        // Pushed over a section from the gear; stays inside the shell.
+        GoRoute(
+          path: SettingsScreen.path,
+          pageBuilder: (context, state) => NoTransitionPage(
+            key: state.pageKey,
+            child: const SettingsScreen(),
           ),
         ),
       ],

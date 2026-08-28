@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lazy_sleeper_app/api/fixture_api.dart';
+import 'package:lazy_sleeper_app/app/settings/app_settings.dart';
 import 'package:lazy_sleeper_app/features/draft/draft_clock.dart';
 import 'package:lazy_sleeper_app/features/draft/draft_view.dart';
 
@@ -108,6 +109,14 @@ void main() {
       expect(alerts[1].body, contains('still here at pick 23'));
       expect(alerts[2].title, 'Injury watch');
       expect(alerts[2].body, contains('Malik Nabers is questionable'));
+    });
+
+    test('only the enabled kinds fire', () {
+      expect(
+        alertsFor(myTurn, enabled: {AlertKind.value}).map((a) => a.severity),
+        [AlertSeverity.success],
+      );
+      expect(alertsFor(myTurn, enabled: const {}), isEmpty);
     });
 
     test('a run adds an info alert; an empty board has none', () {

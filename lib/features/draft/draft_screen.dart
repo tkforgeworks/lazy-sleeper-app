@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/models/draft_state.dart';
+import '../../app/settings/app_settings.dart';
 import '../../app/theme/ls_theme.dart';
 import '../../app/widgets/atoms.dart';
 import 'draft_clock.dart';
@@ -33,9 +34,10 @@ class DraftScreen extends ConsumerWidget {
     final state = live.state;
     if (state == null) return _Setup(live: live);
     final compact = !context.isDesktop;
+    final alerts = alertsFor(state, enabled: ref.watch(enabledAlertsProvider));
     final body = compact
-        ? _Mobile(state: state, live: live)
-        : _Desktop(state: state, live: live);
+        ? _Mobile(state: state, live: live, alerts: alerts)
+        : _Desktop(state: state, live: live, alerts: alerts);
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -46,9 +48,9 @@ class DraftScreen extends ConsumerWidget {
   }
 }
 
-/// Shows [PanicOverlay] at my turn with 30 s or less, unless it was
-/// dismissed for this pick. Watches the clock only while the draft has a
-/// deadline to count down.
+/// Shows [PanicOverlay] at my turn with the threshold (30 s by default, a
+/// setting) or less left, unless it was dismissed for this pick. Watches
+/// the clock only while the draft has a deadline to count down.
 class _PanicGate extends ConsumerWidget {
   const _PanicGate({required this.state, required this.compact});
 
@@ -63,7 +65,10 @@ class _PanicGate extends ConsumerWidget {
     }
     final seconds = secondsRemaining(clock, ref.watch(clockNowProvider));
     final dismissed = ref.watch(panicDismissedProvider) == clock.currentPick;
-    if (dismissed || !isPanic(clock, seconds)) return const SizedBox.shrink();
+    final threshold = ref.watch(panicThresholdProvider);
+    if (dismissed || !isPanic(clock, seconds, threshold: threshold)) {
+      return const SizedBox.shrink();
+    }
     return PanicOverlay(
       state: state,
       seconds: seconds!,
@@ -190,10 +195,15 @@ class _Notice extends StatelessWidget {
 }
 
 class _Desktop extends StatelessWidget {
-  const _Desktop({required this.state, required this.live});
+  const _Desktop({
+    required this.state,
+    required this.live,
+    required this.alerts,
+  });
 
   final DraftState state;
   final DraftLive live;
+  final List<DraftAlert> alerts;
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +247,7 @@ class _Desktop extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AlertsBlock(alerts: alertsFor(state)),
+                      AlertsBlock(alerts: alerts),
                       const SizedBox(height: LsSpacing.md),
                       PickTicker(
                         picks: state.recentPicks,
@@ -256,10 +266,15 @@ class _Desktop extends StatelessWidget {
 }
 
 class _Mobile extends StatelessWidget {
-  const _Mobile({required this.state, required this.live});
+  const _Mobile({
+    required this.state,
+    required this.live,
+    required this.alerts,
+  });
 
   final DraftState state;
   final DraftLive live;
+  final List<DraftAlert> alerts;
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +292,7 @@ class _Mobile extends StatelessWidget {
         Expanded(
           child: CustomScrollView(
             slivers: [
-              if (alertsFor(state) case final alerts when alerts.isNotEmpty)
+              if (alerts.isNotEmpty)
                 SliverToBoxAdapter(
                   child: SizedBox(
                     height: 40,
