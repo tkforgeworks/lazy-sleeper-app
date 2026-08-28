@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="colors_and_type.css">
+<script src="_ds_bundle.js"></script>
+<script>document.documentElement.classList.add('dark');</script>
+<style>body{margin:0;background:#0b1120}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}a{color:#a05cf7}a:hover{color:#c495f4}</style>
+</helmet>
+
+<section style="padding:44px 56px 8px;max-width:1100px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <img src="assets/tkforgeworks-mark.svg" alt="TK ForgeWorks" style="width:34px;height:34px">
+    <div style="font:700 24px var(--font-header);color:var(--purple-primary)">Lazy Sleeper — app design, round 1</div>
+  </div>
+  <div style="margin-top:14px;background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:6px 32px">
+    <div style="font:400 13.5px/1.65 var(--font-body);color:var(--text-primary)">
+      <span style="font:600 11px var(--font-code);letter-spacing:.08em;color:var(--purple-primary)">ASSUMPTIONS</span><br>
+      12-team PPR redraft on Sleeper, slot 7. Dark is the primary theme (light via Tweaks). Compact density. Row shapes mirror <code>GET /board</code> and <code>GET /draft/{id}/state</code>; the Garage scoreboard uses your real 2024–25 benchmark MAE. ForgeModel wears the forge accent — it is the brand's own model, so it gets the spark.
+    </div>
+    <div style="font:400 13.5px/1.65 var(--font-body);color:var(--text-primary)">
+      <span style="font:600 11px var(--font-code);letter-spacing:.08em;color:var(--purple-primary)">IT'S ALIVE</span><br>
+      Click any board row for the detail drawer. The draft clock runs at demo speed (×6, adjustable in Tweaks) — wait for your pick and panic mode fires itself. Garage sliders + "Re-run backtest" move the MAE with delta chips. Season Monitor (screen 4): click any week bar for its box score; the matrix shows availability + points per starter per week. Waivers, Lineup, tier sheet and Data Health are still to come.
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Big Board" style="padding:36px 56px;display:flex;flex-direction:column;gap:14px">
+  <div>
+    <div style="font:600 17px var(--font-header);color:var(--purple-primary)">1 · Big Board + Player Detail</div>
+    <div style="font:italic 400 13px var(--font-body);color:var(--text-secondary)">One dense table, sortable by any single source. The drawer opens over the board — you never lose your place.</div>
+  </div>
+  <div style="display:flex;gap:40px;align-items:flex-start">
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">DESKTOP · 1280</div>
+      <div style="width:1280px;position:relative;background:var(--background);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary)">
+        <div style="display:flex;align-items:center;gap:20px;padding:11px 18px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:9px">
+            <img src="assets/tkforgeworks-mark.svg" alt="" style="width:22px;height:22px">
+            <span style="font:700 15px var(--font-header);color:var(--purple-primary)">Lazy Sleeper</span>
+          </div>
+          <div style="display:flex;gap:2px;flex:1">
+            <span style="font:500 12.5px var(--font-header);color:var(--purple-primary);background:var(--purple-tint);border-radius:6px;padding:5px 11px">Big Board</span>
+            <span style="font:500 12.5px var(--font-header);color:var(--text-secondary);padding:5px 11px">Command Center</span>
+            <span style="font:500 12.5px var(--font-header);color:var(--text-secondary);padding:5px 11px">Tuning Garage</span>
+            <span style="font:500 12.5px var(--font-header);color:var(--text-secondary);padding:5px 11px">Waivers</span>
+            <span style="font:500 12.5px var(--font-header);color:var(--text-secondary);padding:5px 11px">Lineup</span>
+            <span style="font:500 12.5px var(--font-header);color:var(--text-secondary);padding:5px 11px">Data Health</span>
+          </div>
+          <span style="font:400 11px var(--font-code);color:var(--text-secondary)">2026 · PPR · 12-team</span>
+          <span style="display:flex;align-items:center;gap:6px;font:400 11px var(--font-code);color:var(--text-secondary)"><span style="width:7px;height:7px;border-radius:99px;background:var(--success-primary)"></span>snapshots 04:12Z</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--background-light)">
+          <div style="display:flex;gap:4px">
+            <sc-for list="{{ posChips }}" as="c" hint-placeholder-count="5">
+              <span onClick="{{ c.pick }}" style="font:600 11px var(--font-code);padding:4px 10px;border-radius:99px;cursor:pointer;color:{{ c.fg }};background:{{ c.bg }};border:1px solid {{ c.bd }}">{{ c.label }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font:500 11px var(--font-code);color:var(--text-secondary)">RANK BY</span>
+            <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+              <sc-for list="{{ sortTabs }}" as="t" hint-placeholder-count="4">
+                <span onClick="{{ t.pick }}" style="font:500 11.5px var(--font-header);padding:5px 12px;cursor:pointer;color:{{ t.fg }};background:{{ t.bg }}">{{ t.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <span style="font:400 11px var(--font-code);color:var(--text-secondary)">{{ rowCount }} players</span>
+          <span style="font:500 12px var(--font-header);color:var(--purple-primary);background:var(--purple-tint);border:1px solid var(--purple-primary);border-radius:8px;padding:6px 14px;cursor:pointer">Export tier sheet</span>
+        </div>
+        <div style="display:grid;grid-template-columns:40px 1fr 46px 42px 60px 60px 62px 68px 58px 46px 56px 56px 148px;padding:7px 18px;border-bottom:1px solid var(--border);font:600 10px var(--font-code);letter-spacing:.06em;color:var(--text-secondary)">
+          <div>#</div><div>PLAYER</div><div>POS</div><div>BYE</div>
+          <div style="text-align:right;color:{{ hSl }}">SLPR</div>
+          <div style="text-align:right;color:{{ hEs }}">ESPN</div>
+          <div style="text-align:right;color:{{ hFm }}">FORGE</div>
+          <div style="text-align:right;color:{{ hEns }}">ENS</div>
+          <div style="text-align:right">VORP</div><div style="text-align:center">TIER</div>
+          <div style="text-align:right;color:{{ hAdp }}">ADP</div><div style="text-align:right">Δ ADP</div>
+          <div style="padding-left:14px">FLAGS</div>
+        </div>
+        <div>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="14">
+            <sc-if value="{{ r.isBreak }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 18px 3px">
+                <span style="font:600 10px var(--font-code);letter-spacing:.1em;color:{{ r.tc }}">{{ r.label }}</span>
+                <span style="flex:1;height:1px;background:var(--border)"></span>
+                <span style="font:400 10px var(--font-code);color:var(--text-secondary)">{{ r.gap }}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ r.isRow }}" hint-placeholder-val="{{ true }}">
+              <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:40px 1fr 46px 42px 60px 60px 62px 68px 58px 46px 56px 56px 148px;align-items:center;padding:4px 18px;cursor:pointer;border-bottom:1px solid rgba(51,65,85,.35)" style-hover="background:rgba(196,149,244,.07)">
+                <div style="font:400 11px var(--font-code);color:var(--text-secondary)">{{ r.rank }}</div>
+                <div style="display:flex;align-items:baseline;gap:8px;min-width:0">
+                  <span style="font:500 12.5px var(--font-header);color:var(--text-primary);white-space:nowrap">{{ r.name }}</span>
+                  <span style="font:400 10px var(--font-code);color:var(--text-secondary);white-space:nowrap">{{ r.sub }}</span>
+                </div>
+                <div><span style="font:500 10px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 6px">{{ r.pos }}</span></div>
+                <div style="font:400 11px var(--font-code);color:var(--text-secondary)">{{ r.bye }}</div>
+                <div style="font:400 12px var(--font-code);color:var(--text-primary);text-align:right">{{ r.sl }}</div>
+                <div style="font:400 12px var(--font-code);color:var(--text-primary);text-align:right">{{ r.es }}</div>
+                <div style="font:400 12px var(--font-code);color:var(--forge-primary);text-align:right">{{ r.fm }}</div>
+                <div style="font:600 12px var(--font-code);color:var(--text-primary);text-align:right">{{ r.ens }}</div>
+                <div style="font:600 12px var(--font-code);color:var(--purple-primary);text-align:right">{{ r.vorp }}</div>
+                <div style="text-align:center"><span style="font:600 10px var(--font-code);color:{{ r.tc }};border:1px solid {{ r.tc }};border-radius:4px;padding:1px 5px">T{{ r.tier }}</span></div>
+                <div style="font:400 11px var(--font-code);color:var(--text-secondary);text-align:right">{{ r.adp }}</div>
+                <div style="font:500 11px var(--font-code);text-align:right;color:{{ r.dc }}">{{ r.dStr }}</div>
+                <div style="display:flex;gap:5px;padding-left:14px">
+                  <sc-if value="{{ r.split }}" hint-placeholder-val="{{ false }}">
+                    <span style="font:500 9.5px var(--font-code);color:var(--warning-text);background:var(--warning-light);border-radius:4px;padding:1px 6px">SPLIT {{ r.splitStr }}</span>
+                  </sc-if>
+                  <sc-if value="{{ r.hasInj }}" hint-placeholder-val="{{ false }}">
+                    <span style="font:600 9.5px var(--font-code);color:var(--error-text);background:var(--error-light);border-radius:4px;padding:1px 7px">{{ r.inj }}</span>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+        <div style="padding:9px 18px;font:400 10.5px var(--font-code);color:var(--text-secondary);display:flex;gap:18px">
+          <span>ens = 0.40 slpr + 0.32 espn + 0.28 forge (fitted v1)</span><span>Δ ADP &gt; 0 → market drafts him later than the model would</span><span style="flex:1"></span><span>Built with stubborn persistence.</span>
+        </div>
+
+        <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:45px;right:0;bottom:0;width:404px;background:var(--background-light);border-left:1px solid var(--border);box-shadow:-16px 0 32px rgba(0,0,0,.4);padding:18px 22px;overflow:auto;display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="flex:1">
+                <div style="font:600 20px var(--font-header);color:var(--purple-primary)">{{ sel.name }}</div>
+                <div style="font:400 11px var(--font-code);color:var(--text-secondary);margin-top:2px">{{ sel.meta }}</div>
+              </div>
+              <sc-if value="{{ sel.hasInj }}" hint-placeholder-val="{{ false }}">
+                <span style="font:600 10px var(--font-code);color:var(--error-text);background:var(--error-light);border-radius:4px;padding:2px 8px">{{ sel.inj }}</span>
+              </sc-if>
+              <span onClick="{{ closeSel }}" style="font:400 16px var(--font-header);color:var(--text-secondary);cursor:pointer;line-height:1">×</span>
+            </div>
+            <div>
+              <div style="font:600 10px var(--font-code);letter-spacing:.08em;color:var(--text-secondary);margin-bottom:8px">SOURCE PROJECTIONS · SEASON PTS</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <sc-for list="{{ sel.bars }}" as="b" hint-placeholder-count="4">
+                  <div style="display:grid;grid-template-columns:78px 1fr 44px;align-items:center;gap:10px">
+                    <span style="font:500 10.5px var(--font-code);color:var(--text-secondary)">{{ b.l }}</span>
+                    <span style="height:10px;background:rgba(51,65,85,.5);border-radius:3px;overflow:hidden;display:block"><span style="display:block;height:100%;border-radius:3px;width:{{ b.w }};background:{{ b.c }}"></span></span>
+                    <span style="font:600 11.5px var(--font-code);color:var(--text-primary);text-align:right">{{ b.v }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div style="background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 12px"><div style="font:400 9.5px var(--font-code);color:var(--text-secondary)">2023</div><div style="font:600 16px var(--font-code);color:var(--text-primary)">{{ sel.a23 }}</div></div>
+              <div style="background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 12px"><div style="font:400 9.5px var(--font-code);color:var(--text-secondary)">2024</div><div style="font:600 16px var(--font-code);color:var(--text-primary)">{{ sel.a24 }}</div></div>
+              <div style="background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 12px"><div style="font:400 9.5px var(--font-code);color:var(--text-secondary)">2025</div><div style="font:600 16px var(--font-code);color:var(--text-primary)">{{ sel.a25 }}</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div style="background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 12px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">{{ sel.uLabel }}</span><span style="font:600 11px var(--font-code);color:var(--purple-primary)">{{ sel.tgtLast }}</span></div>
+                <svg width="100%" height="34" viewBox="0 0 150 34" preserveAspectRatio="none" style="display:block;margin-top:4px"><polyline points="{{ sel.tgtPts }}" fill="none" stroke="var(--purple-primary)" stroke-width="1.6"></polyline></svg>
+              </div>
+              <div style="background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 12px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">SNAP % · L10</span><span style="font:600 11px var(--font-code);color:var(--info-primary)">{{ sel.snapLast }}</span></div>
+                <svg width="100%" height="34" viewBox="0 0 150 34" preserveAspectRatio="none" style="display:block;margin-top:4px"><polyline points="{{ sel.snapPts }}" fill="none" stroke="var(--info-primary)" stroke-width="1.6"></polyline></svg>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font:400 9.5px var(--font-code);color:var(--text-secondary);margin-bottom:6px"><span>WEEKLY RANGE · PPG</span><span>floor {{ sel.fl }} · median {{ sel.md }} · ceiling {{ sel.cl }}</span></div>
+              <div style="height:12px;background:rgba(51,65,85,.5);border-radius:99px;position:relative">
+                <span style="position:absolute;top:0;bottom:0;border-radius:99px;background:var(--purple-tint);left:{{ sel.rngL }};width:{{ sel.rngW }}"></span>
+                <span style="position:absolute;top:-2px;width:2px;height:16px;background:var(--purple-primary);left:{{ sel.mdX }}"></span>
+              </div>
+            </div>
+            <div style="background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 12px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">ADP TREND · 30 DAYS</span><span style="font:500 10.5px var(--font-code);color:{{ sel.adpTc }}">{{ sel.adpTrend }}</span></div>
+              <svg width="100%" height="30" viewBox="0 0 150 30" preserveAspectRatio="none" style="display:block;margin-top:4px"><polyline points="{{ sel.adpPts }}" fill="none" stroke="{{ sel.adpTc }}" stroke-width="1.6"></polyline></svg>
+            </div>
+            <div>
+              <div style="font:600 10px var(--font-code);letter-spacing:.08em;color:var(--text-secondary)">DEPTH CHART</div>
+              <div style="font:400 13px var(--font-body);color:var(--text-primary);margin-top:3px">{{ sel.depth }}</div>
+            </div>
+            <div>
+              <div style="font:600 10px var(--font-code);letter-spacing:.08em;color:var(--text-secondary)">NEWS</div>
+              <div style="font:italic 400 13px/1.6 var(--font-body);color:var(--text-primary);margin-top:3px">{{ sel.news }}</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">MOBILE · 390</div>
+      <div style="width:390px;height:800px;position:relative;background:var(--background);border:8px solid #1e293b;border-radius:44px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary);display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:12px 24px 4px;font:600 11px var(--font-code);color:var(--text-secondary)"><span>9:41</span><span>LTE ▮▮▮</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 18px 10px;border-bottom:1px solid var(--border)">
+          <img src="assets/tkforgeworks-mark.svg" alt="" style="width:20px;height:20px">
+          <span style="font:700 15px var(--font-header);color:var(--purple-primary)">Big Board</span>
+          <span style="flex:1"></span>
+          <span style="font:400 10px var(--font-code);color:var(--text-secondary)">snapshots 04:12Z</span>
+          <span style="width:6px;height:6px;border-radius:99px;background:var(--success-primary)"></span>
+        </div>
+        <div style="display:flex;gap:4px;padding:9px 14px;border-bottom:1px solid var(--border);overflow-x:auto">
+          <sc-for list="{{ posChipsM }}" as="c" hint-placeholder-count="5">
+            <span onClick="{{ c.pick }}" style="font:600 10.5px var(--font-code);padding:4px 11px;border-radius:99px;cursor:pointer;white-space:nowrap;color:{{ c.fg }};background:{{ c.bg }};border:1px solid {{ c.bd }}">{{ c.label }}</span>
+          </sc-for>
+        </div>
+        <div style="flex:1;overflow:auto">
+          <sc-for list="{{ mRows }}" as="r" hint-placeholder-count="12">
+            <div onClick="{{ r.open }}" style="display:grid;grid-template-columns:30px 44px 1fr 52px 44px;align-items:center;gap:6px;padding:9px 16px;border-bottom:1px solid rgba(51,65,85,.35);cursor:pointer" style-hover="background:rgba(196,149,244,.07)">
+              <span style="font:400 11px var(--font-code);color:var(--text-secondary)">{{ r.rank }}</span>
+              <span style="font:600 9.5px var(--font-code);color:{{ r.tc }};border:1px solid {{ r.tc }};border-radius:4px;padding:1px 0;text-align:center">T{{ r.tier }} {{ r.pos }}</span>
+              <span style="min-width:0">
+                <span style="display:block;font:500 12.5px var(--font-header);color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }}</span>
+                <span style="display:block;font:400 9.5px var(--font-code);color:var(--text-secondary)">{{ r.sub }}</span>
+              </span>
+              <span style="text-align:right"><span style="display:block;font:600 12px var(--font-code);color:var(--text-primary)">{{ r.ens }}</span><span style="display:block;font:400 9px var(--font-code);color:var(--text-secondary)">ENS</span></span>
+              <span style="text-align:right"><span style="display:block;font:600 12px var(--font-code);color:var(--purple-primary)">{{ r.vorp }}</span><span style="display:block;font:400 9px var(--font-code);color:var(--text-secondary)">VORP</span></span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;border-top:1px solid var(--border);padding:8px 10px 16px;background:var(--background)">
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--purple-primary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"></path></svg><span style="font:500 9px var(--font-header)">Board</span></span>
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path></svg><span style="font:500 9px var(--font-header)">Draft</span></span>
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"></path></svg><span style="font:500 9px var(--font-header)">Garage</span></span>
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"></path></svg><span style="font:500 9px var(--font-header)">Health</span></span>
+        </div>
+        <sc-if value="{{ hasMSel }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeMSel }}" style="position:absolute;inset:0;background:rgba(11,17,32,.55)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:62%;background:var(--background-light);border-top:1px solid var(--border);border-radius:22px 22px 0 0;padding:14px 20px;overflow:auto;display:flex;flex-direction:column;gap:13px">
+            <div style="width:38px;height:4px;border-radius:99px;background:var(--border);margin:0 auto"></div>
+            <div style="display:flex;align-items:flex-start;gap:10px">
+              <div style="flex:1">
+                <div style="font:600 17px var(--font-header);color:var(--purple-primary)">{{ msel.name }}</div>
+                <div style="font:400 10px var(--font-code);color:var(--text-secondary);margin-top:2px">{{ msel.meta }}</div>
+              </div>
+              <sc-if value="{{ msel.hasInj }}" hint-placeholder-val="{{ false }}">
+                <span style="font:600 10px var(--font-code);color:var(--error-text);background:var(--error-light);border-radius:4px;padding:2px 8px">{{ msel.inj }}</span>
+              </sc-if>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <sc-for list="{{ msel.bars }}" as="b" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:70px 1fr 40px;align-items:center;gap:8px">
+                  <span style="font:500 10px var(--font-code);color:var(--text-secondary)">{{ b.l }}</span>
+                  <span style="height:9px;background:rgba(51,65,85,.5);border-radius:3px;overflow:hidden;display:block"><span style="display:block;height:100%;width:{{ b.w }};background:{{ b.c }}"></span></span>
+                  <span style="font:600 11px var(--font-code);color:var(--text-primary);text-align:right">{{ b.v }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:8px 10px"><div style="font:400 9px var(--font-code);color:var(--text-secondary)">FLOOR</div><div style="font:600 14px var(--font-code);color:var(--text-primary)">{{ msel.fl }}</div></div>
+              <div style="flex:1;background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:8px 10px"><div style="font:400 9px var(--font-code);color:var(--text-secondary)">MEDIAN</div><div style="font:600 14px var(--font-code);color:var(--purple-primary)">{{ msel.md }}</div></div>
+              <div style="flex:1;background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:8px 10px"><div style="font:400 9px var(--font-code);color:var(--text-secondary)">CEILING</div><div style="font:600 14px var(--font-code);color:var(--text-primary)">{{ msel.cl }}</div></div>
+            </div>
+            <div style="background:var(--background);border:1px solid var(--purple-tint);border-radius:8px;padding:8px 10px">
+              <div style="display:flex;justify-content:space-between"><span style="font:400 9px var(--font-code);color:var(--text-secondary)">{{ msel.uLabel }}</span><span style="font:600 10px var(--font-code);color:var(--purple-primary)">{{ msel.tgtLast }}</span></div>
+              <svg width="100%" height="30" viewBox="0 0 150 34" preserveAspectRatio="none" style="display:block;margin-top:3px"><polyline points="{{ msel.tgtPts }}" fill="none" stroke="var(--purple-primary)" stroke-width="1.6"></polyline></svg>
+            </div>
+            <div style="font:italic 400 12.5px/1.55 var(--font-body);color:var(--text-primary)">{{ msel.news }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Command Center" style="padding:36px 56px;display:flex;flex-direction:column;gap:14px">
+  <div>
+    <div style="font:600 17px var(--font-header);color:var(--purple-primary)">2 · Draft Command Center</div>
+    <div style="font:italic 400 13px var(--font-body);color:var(--text-secondary)">Zero navigation, everything glanceable. The demo clock is live — when your pick arrives and the timer drops under 30, panic mode takes the wheel.</div>
+  </div>
+  <div style="display:flex;gap:40px;align-items:flex-start">
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">DESKTOP · 1280</div>
+      <div style="width:1280px;position:relative;background:var(--background);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary)">
+        <div style="display:flex;align-items:center;gap:18px;padding:12px 20px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:9px">
+            <img src="assets/tkforgeworks-mark.svg" alt="" style="width:22px;height:22px">
+            <span style="font:700 15px var(--font-header);color:var(--purple-primary)">Command Center</span>
+          </div>
+          <div>
+            <div style="font:700 17px var(--font-header);color:var(--text-primary)">Pick {{ curPickLabel }}</div>
+            <div style="font:400 10px var(--font-code);color:var(--text-secondary)">overall {{ curPickNo }} · round 2 of 15</div>
+          </div>
+          <div style="flex:1;text-align:center">
+            <div style="font:400 11px var(--font-code);color:var(--text-secondary)">ON THE CLOCK · {{ onClockTeam }}</div>
+            <div style="font:700 32px/1.1 var(--font-code);color:{{ timerColor }}">{{ timerS }}s</div>
+            <div style="width:220px;height:3px;background:rgba(51,65,85,.5);border-radius:99px;margin:4px auto 0"><span style="display:block;height:100%;border-radius:99px;background:{{ timerColor }};width:{{ timerW }}"></span></div>
+          </div>
+          <div style="text-align:center;background:{{ untilBg }};border:1px solid {{ untilBd }};border-radius:8px;padding:8px 18px">
+            <div style="font:700 22px var(--font-code);color:{{ untilFg }}">{{ untilBig }}</div>
+            <div style="font:500 9.5px var(--font-code);letter-spacing:.06em;color:{{ untilFg }}">{{ untilCap }}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;padding:9px 20px;border-bottom:1px solid var(--border);background:var(--background-light);align-items:center">
+          <span style="font:500 10px var(--font-code);color:var(--text-secondary);margin-right:6px">YOUR ROSTER</span>
+          <sc-for list="{{ slots }}" as="s" hint-placeholder-count="10">
+            <span style="display:flex;flex-direction:column;align-items:center;min-width:64px;padding:4px 8px;border-radius:6px;border:1px {{ s.bs }} {{ s.bd }};background:{{ s.bg }}">
+              <span style="font:600 8.5px var(--font-code);letter-spacing:.06em;color:var(--text-secondary)">{{ s.s }}</span>
+              <span style="font:500 10.5px var(--font-header);color:{{ s.fg }};white-space:nowrap">{{ s.v }}</span>
+            </span>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 316px;gap:0">
+          <div style="padding:14px 20px;border-right:1px solid var(--border)">
+            <div style="border:1px solid {{ recBd }};background:var(--background-light);border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:20px">
+              <div style="flex:1">
+                <div style="font:600 9.5px var(--font-code);letter-spacing:.1em;color:{{ recLabelC }}">{{ recLabel }}</div>
+                <div style="font:700 26px/1.15 var(--font-header);color:var(--purple-primary)">{{ recName }}</div>
+                <div style="font:italic 400 12.5px/1.5 var(--font-body);color:var(--text-primary);margin-top:3px">{{ recWhy }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">IF HE'S GONE</span>
+                <span style="font:500 12px var(--font-header);color:var(--text-primary);background:var(--purple-tint);border-radius:6px;padding:4px 10px">{{ alt1 }}</span>
+                <span style="font:500 12px var(--font-header);color:var(--text-primary);background:var(--purple-tint);border-radius:6px;padding:4px 10px">{{ alt2 }}</span>
+              </div>
+              <sc-if value="{{ myTurnLive }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ draftRec }}" style="font:600 14px var(--font-header);background:var(--purple-primary);color:#141327;padding:11px 22px;border-radius:8px;cursor:pointer;white-space:nowrap">Draft him</span>
+              </sc-if>
+              <sc-if value="{{ drafted }}" hint-placeholder-val="{{ false }}">
+                <span style="font:500 12px var(--font-header);color:var(--success-text);background:var(--success-light);border-radius:8px;padding:9px 16px">Pick is in. Back to lurking.</span>
+              </sc-if>
+            </div>
+            <div style="display:grid;grid-template-columns:34px 46px 1fr 44px 60px 56px 118px 58px;padding:10px 8px 6px;font:600 9.5px var(--font-code);letter-spacing:.06em;color:var(--text-secondary)">
+              <div>#</div><div>TIER</div><div>PLAYER</div><div>POS</div><div style="text-align:right">ENS</div><div style="text-align:right">VORP</div><div style="padding-left:16px">SURVIVAL → {{ nextPickLabel }}</div><div style="text-align:center">RUN</div>
+            </div>
+            <sc-for list="{{ avail }}" as="a" hint-placeholder-count="10">
+              <div style="display:grid;grid-template-columns:34px 46px 1fr 44px 60px 56px 118px 58px;align-items:center;padding:5px 8px;border-top:1px solid rgba(51,65,85,.35)" style-hover="background:rgba(196,149,244,.07)">
+                <div style="font:400 11px var(--font-code);color:var(--text-secondary)">{{ a.i }}</div>
+                <div><span style="font:600 9.5px var(--font-code);color:{{ a.tc }};border:1px solid {{ a.tc }};border-radius:4px;padding:1px 6px">T{{ a.tier }}</span></div>
+                <div style="display:flex;align-items:baseline;gap:7px"><span style="font:500 12.5px var(--font-header);color:var(--text-primary)">{{ a.name }}</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">{{ a.sub }}</span></div>
+                <div><span style="font:500 10px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 6px">{{ a.pos }}</span></div>
+                <div style="font:400 12px var(--font-code);color:var(--text-primary);text-align:right">{{ a.ens }}</div>
+                <div style="font:600 12px var(--font-code);color:var(--purple-primary);text-align:right">{{ a.vorp }}</div>
+                <div style="display:flex;align-items:center;gap:7px;padding-left:16px">
+                  <span style="flex:1;height:5px;background:rgba(51,65,85,.5);border-radius:99px;overflow:hidden"><span style="display:block;height:100%;border-radius:99px;background:{{ a.sc }};width:{{ a.sw }}"></span></span>
+                  <span style="font:500 10.5px var(--font-code);color:{{ a.sc }};width:32px;text-align:right">{{ a.surv }}%</span>
+                </div>
+                <div style="text-align:center">
+                  <sc-if value="{{ a.run }}" hint-placeholder-val="{{ false }}">
+                    <span style="font:600 9px var(--font-code);color:var(--info-text);background:var(--info-light);border-radius:4px;padding:1px 6px">RUN</span>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+            <div style="display:flex;gap:14px;align-items:center;padding:10px 8px 2px;font:400 10.5px var(--font-code);color:var(--text-secondary)">
+              <span>demo clock ×{{ demoSpd }}</span>
+              <span onClick="{{ skip }}" style="color:var(--purple-primary);cursor:pointer;text-decoration:underline">skip to next pick</span>
+              <span onClick="{{ resetSim }}" style="color:var(--purple-primary);cursor:pointer;text-decoration:underline">reset demo</span>
+              <span style="flex:1"></span><span>rows = GET /draft/{id}/state, pick_score order</span>
+            </div>
+          </div>
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:var(--background)">
+            <div style="font:600 10px var(--font-code);letter-spacing:.1em;color:var(--text-secondary)">ALERTS</div>
+            <sc-for list="{{ alerts }}" as="al" hint-placeholder-count="4">
+              <div style="background:{{ al.bg }};border:1px solid {{ al.bd }};border-radius:8px;padding:9px 12px">
+                <div style="font:600 11px var(--font-header);color:{{ al.fg }}">{{ al.title }}</div>
+                <div style="font:400 11.5px/1.45 var(--font-body);color:{{ al.fg }};margin-top:2px">{{ al.body }}</div>
+              </div>
+            </sc-for>
+            <div style="font:600 10px var(--font-code);letter-spacing:.1em;color:var(--text-secondary);margin-top:6px">PICK TICKER</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ ticker }}" as="t" hint-placeholder-count="7">
+                <div style="display:grid;grid-template-columns:36px 1fr 40px;gap:8px;align-items:baseline;padding:3px 2px;border-bottom:1px solid rgba(51,65,85,.3)">
+                  <span style="font:500 10px var(--font-code);color:var(--text-secondary)">{{ t.pk }}</span>
+                  <span style="min-width:0"><span style="font:500 11.5px var(--font-header);color:var(--text-primary)">{{ t.nm }}</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)"> · {{ t.team }}</span></span>
+                  <span style="font:500 9.5px var(--font-code);color:var(--purple-primary);text-align:right">{{ t.pos }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <sc-if value="{{ panic }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:rgba(11,16,29,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:5">
+            <div style="font:600 13px var(--font-code);letter-spacing:.24em;color:var(--error-primary)">{{ timerS }}S · YOU ARE ON THE CLOCK</div>
+            <div style="font:800 64px/1.05 var(--font-header);background:var(--forge-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;padding:0 40px">{{ recName }}</div>
+            <div style="font:400 15px var(--font-body);color:var(--text-secondary)">{{ recPanicSub }}</div>
+            <div onClick="{{ draftRec }}" style="font:600 16px var(--font-header);background:var(--purple-primary);color:#141327;padding:13px 34px;border-radius:8px;cursor:pointer">Draft him</div>
+            <div style="font:400 11px var(--font-code);color:var(--text-secondary)">or breathe — alternates: {{ alt1 }} · {{ alt2 }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">MOBILE · 390</div>
+      <div style="width:390px;height:800px;position:relative;background:var(--background);border:8px solid #1e293b;border-radius:44px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary);display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:12px 24px 4px;font:600 11px var(--font-code);color:var(--text-secondary)"><span>9:41</span><span>LTE ▮▮▮</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 18px 10px;border-bottom:1px solid var(--border)">
+          <div style="flex:1">
+            <div style="font:700 14px var(--font-header);color:var(--purple-primary)">Pick {{ curPickLabel }}</div>
+            <div style="font:400 9.5px var(--font-code);color:var(--text-secondary)">{{ onClockTeam }}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font:700 22px/1 var(--font-code);color:{{ timerColor }}">{{ timerS }}s</div>
+            <div style="font:500 9px var(--font-code);color:{{ untilFg }}">{{ untilBig }} {{ untilCap }}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;padding:9px 14px;overflow-x:auto;border-bottom:1px solid var(--border)">
+          <sc-for list="{{ alerts }}" as="al" hint-placeholder-count="4">
+            <span style="font:500 10px var(--font-header);color:{{ al.fg }};background:{{ al.bg }};border:1px solid {{ al.bd }};border-radius:99px;padding:4px 11px;white-space:nowrap">{{ al.title }}</span>
+          </sc-for>
+        </div>
+        <div style="padding:12px 14px">
+          <div style="border:1px solid {{ recBd }};background:var(--background-light);border-radius:8px;padding:12px 14px">
+            <div style="font:600 9px var(--font-code);letter-spacing:.1em;color:{{ recLabelC }}">{{ recLabel }}</div>
+            <div style="font:700 21px/1.15 var(--font-header);color:var(--purple-primary)">{{ recName }}</div>
+            <div style="font:italic 400 11.5px/1.5 var(--font-body);color:var(--text-primary);margin-top:3px">{{ recWhy }}</div>
+            <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+              <span style="font:400 9px var(--font-code);color:var(--text-secondary)">ELSE</span>
+              <span style="font:500 10.5px var(--font-header);color:var(--text-primary);background:var(--purple-tint);border-radius:6px;padding:3px 8px">{{ alt1 }}</span>
+              <span style="font:500 10.5px var(--font-header);color:var(--text-primary);background:var(--purple-tint);border-radius:6px;padding:3px 8px">{{ alt2 }}</span>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;overflow:auto;padding:0 14px 12px">
+          <sc-for list="{{ availM }}" as="a" hint-placeholder-count="6">
+            <div style="display:grid;grid-template-columns:40px 1fr 46px 60px;align-items:center;gap:6px;padding:8px 4px;border-bottom:1px solid rgba(51,65,85,.35)">
+              <span style="font:600 9px var(--font-code);color:{{ a.tc }};border:1px solid {{ a.tc }};border-radius:4px;padding:1px 0;text-align:center">T{{ a.tier }} {{ a.pos }}</span>
+              <span style="min-width:0"><span style="display:block;font:500 12px var(--font-header);color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.name }}</span><span style="display:block;font:400 9px var(--font-code);color:var(--text-secondary)">{{ a.sub }}</span></span>
+              <span style="font:600 11.5px var(--font-code);color:var(--purple-primary);text-align:right">{{ a.vorp }}</span>
+              <span style="font:500 10.5px var(--font-code);color:{{ a.sc }};text-align:right">{{ a.surv }}%</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ panic }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:rgba(11,16,29,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:5;padding:0 20px">
+            <div style="font:600 11px var(--font-code);letter-spacing:.2em;color:var(--error-primary)">{{ timerS }}S · YOU'RE UP</div>
+            <div style="font:800 38px/1.1 var(--font-header);background:var(--forge-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center">{{ recName }}</div>
+            <div style="font:400 13px var(--font-body);color:var(--text-secondary);text-align:center">{{ recPanicSub }}</div>
+            <div onClick="{{ draftRec }}" style="font:600 14px var(--font-header);background:var(--purple-primary);color:#141327;padding:11px 26px;border-radius:8px;cursor:pointer">Draft him</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Tuning Garage" style="padding:36px 56px 64px;display:flex;flex-direction:column;gap:14px">
+  <div>
+    <div style="font:600 17px var(--font-header);color:var(--purple-primary)">3 · The Tuning Garage</div>
+    <div style="font:italic 400 13px var(--font-body);color:var(--text-secondary)">Turn a knob, re-run the backtest, watch MAE move. Every adjustment shows its consequences before you commit it.</div>
+  </div>
+  <div style="display:flex;gap:40px;align-items:flex-start">
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">DESKTOP · 1280</div>
+      <div style="width:1280px;background:var(--background);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary)">
+        <div style="display:flex;align-items:center;gap:20px;padding:11px 18px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:9px">
+            <img src="assets/tkforgeworks-mark.svg" alt="" style="width:22px;height:22px">
+            <span style="font:700 15px var(--font-header);color:var(--purple-primary)">Tuning Garage</span>
+          </div>
+          <span style="font:400 11px var(--font-code);color:var(--text-secondary)">{{ ranAt }}</span>
+          <span style="flex:1"></span>
+          <span style="font:400 11px var(--font-code);color:var(--text-secondary)">PUT /ensemble/overrides · POST /board/regen</span>
+        </div>
+        <div style="display:grid;grid-template-columns:330px 430px 1fr;gap:0">
+          <div style="padding:16px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:16px">
+            <div style="font:600 10px var(--font-code);letter-spacing:.1em;color:var(--text-secondary)">FORGEMODEL KNOBS</div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:500 12.5px var(--font-header);color:var(--text-primary)">Recency half-life</span><span style="font:600 11.5px var(--font-code);color:var(--forge-primary)">{{ k1 }} wks</span></div>
+              <input type="range" min="2" max="16" step="1" value="{{ k1 }}" onChange="{{ onK1 }}" style="width:100%;accent-color:#f9a03f;margin:6px 0 2px">
+              <div style="font:italic 400 11px/1.5 var(--font-body);color:var(--text-secondary)">How fast old games stop mattering. Short = twitchy, long = stubborn.</div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:500 12.5px var(--font-header);color:var(--text-primary)">Usage vs. efficiency</span><span style="font:600 11.5px var(--font-code);color:var(--forge-primary)">{{ k2 }} / {{ k2inv }}</span></div>
+              <input type="range" min="0" max="100" step="5" value="{{ k2 }}" onChange="{{ onK2 }}" style="width:100%;accent-color:#f9a03f;margin:6px 0 2px">
+              <div style="font:italic 400 11px/1.5 var(--font-body);color:var(--text-secondary)">Volume is a choice, efficiency is a rumor. Lean left to trust targets.</div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:500 12.5px var(--font-header);color:var(--text-primary)">Injury haircut</span><span style="font:600 11.5px var(--font-code);color:var(--forge-primary)">{{ k3 }}%</span></div>
+              <input type="range" min="0" max="40" step="1" value="{{ k3 }}" onChange="{{ onK3 }}" style="width:100%;accent-color:#f9a03f;margin:6px 0 2px">
+              <div style="font:italic 400 11px/1.5 var(--font-body);color:var(--text-secondary)">Discount applied per Q/O designation, decaying as practice reports improve.</div>
+            </div>
+            <div onClick="{{ onRun }}" style="font:600 14px var(--font-header);text-align:center;background:{{ runBg }};color:#141327;padding:11px 0;border-radius:8px;cursor:pointer">{{ runLabel }}</div>
+            <div style="font:400 10.5px/1.6 var(--font-code);color:var(--text-secondary)">Backtests 2023–25, n-weighted. Takes a few seconds; nobody has died waiting yet.</div>
+          </div>
+          <div style="padding:16px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center">
+              <span style="font:600 10px var(--font-code);letter-spacing:.1em;color:var(--text-secondary)">ENSEMBLE WEIGHTS · SEASON</span>
+              <span style="flex:1"></span>
+              <span onClick="{{ onToggleOv }}" style="display:flex;align-items:center;gap:7px;cursor:pointer">
+                <span style="font:400 10.5px var(--font-code);color:var(--text-secondary)">manual overrides</span>
+                <span style="width:30px;height:16px;border-radius:99px;background:{{ ovBg }};position:relative;display:inline-block"><span style="position:absolute;top:2px;width:12px;height:12px;border-radius:99px;background:#fff;left:{{ ovKnob }};transition:left .2s ease"></span></span>
+              </span>
+            </div>
+            <div style="display:flex;gap:12px;font:400 9.5px var(--font-code);color:var(--text-secondary)">
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:#a05cf7"></span>Sleeper</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:#38bdf8"></span>ESPN</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:#f9a03f"></span>ForgeModel</span>
+            </div>
+            <sc-for list="{{ wRows }}" as="w" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:36px 1fr 96px 78px;gap:10px;align-items:center;opacity:{{ wOpacity }}">
+                <span style="font:600 11px var(--font-code);color:var(--text-primary)">{{ w.pos }}</span>
+                <span style="display:flex;height:14px;border-radius:4px;overflow:hidden;background:rgba(51,65,85,.5)">
+                  <span style="display:block;background:#a05cf7;width:{{ w.slW }}"></span>
+                  <span style="display:block;background:#38bdf8;width:{{ w.esW }}"></span>
+                  <span style="display:block;background:#f9a03f;width:{{ w.fwW }}"></span>
+                </span>
+                <input type="range" min="0" max="40" step="2" value="{{ w.fw }}" onChange="{{ w.onFw }}" style="width:96px;accent-color:#f9a03f">
+                <span style="font:400 9.5px var(--font-code);color:var(--text-secondary);text-align:right">{{ w.split }}</span>
+              </div>
+            </sc-for>
+            <div style="font:400 10.5px/1.6 var(--font-code);color:var(--text-secondary);margin-top:4px">Slider sets ForgeModel's share; Sleeper/ESPN split the rest at fitted inverse-MAE ratio. Stored as-is, normalized on read.</div>
+          </div>
+          <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+            <div style="font:600 10px var(--font-code);letter-spacing:.1em;color:var(--text-secondary)">ACCURACY SCOREBOARD · SEASON MAE</div>
+            <div style="display:grid;grid-template-columns:44px repeat(5,1fr) 62px;padding:4px 0;font:600 9.5px var(--font-code);letter-spacing:.05em;color:var(--text-secondary)">
+              <div>POS</div><div style="text-align:right">SLPR</div><div style="text-align:right">ESPN</div><div style="text-align:right">FORGE</div><div style="text-align:right;color:var(--purple-primary)">ENS</div><div style="text-align:right">NAIVE</div><div style="text-align:right">Δ RUN</div>
+            </div>
+            <sc-for list="{{ sbRows }}" as="s" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:44px repeat(5,1fr) 62px;align-items:center;padding:5px 0;border-top:1px solid rgba(51,65,85,.35)">
+                <div style="font:600 11px var(--font-code);color:var(--text-primary)">{{ s.pos }}</div>
+                <div style="font:400 11.5px var(--font-code);color:var(--text-primary);text-align:right">{{ s.sl }}</div>
+                <div style="font:400 11.5px var(--font-code);color:var(--text-primary);text-align:right">{{ s.es }}</div>
+                <div style="font:400 11.5px var(--font-code);color:var(--forge-primary);text-align:right">{{ s.fm }}</div>
+                <div style="font:600 12px var(--font-code);color:var(--purple-primary);text-align:right;background:rgba(196,149,244,.08);border-radius:4px;padding:1px 4px">{{ s.ens }}</div>
+                <div style="font:400 11.5px var(--font-code);color:var(--text-secondary);text-align:right">{{ s.nv }}</div>
+                <div style="font:600 10.5px var(--font-code);text-align:right;color:{{ s.dc }}">{{ s.delta }}</div>
+              </div>
+            </sc-for>
+            <div style="font:italic 400 11.5px/1.6 var(--font-body);color:var(--text-secondary);margin-top:4px">Lower is better. Naive is the opponent, not a member — it's here to keep everyone honest. Numbers from data/benchmarks, 2024–25 pooled.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">MOBILE · 390</div>
+      <div style="width:390px;height:800px;background:var(--background);border:8px solid #1e293b;border-radius:44px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary);display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:12px 24px 4px;font:600 11px var(--font-code);color:var(--text-secondary)"><span>9:41</span><span>LTE ▮▮▮</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 18px 10px;border-bottom:1px solid var(--border)">
+          <img src="assets/tkforgeworks-mark.svg" alt="" style="width:20px;height:20px">
+          <span style="font:700 15px var(--font-header);color:var(--purple-primary)">Tuning Garage</span>
+          <span style="flex:1"></span>
+          <span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">{{ ranAtShort }}</span>
+        </div>
+        <div style="flex:1;overflow:auto;padding:14px 18px;display:flex;flex-direction:column;gap:16px">
+          <div>
+            <div style="display:flex;justify-content:space-between"><span style="font:500 12px var(--font-header)">Recency half-life</span><span style="font:600 11px var(--font-code);color:var(--forge-primary)">{{ k1 }} wks</span></div>
+            <input type="range" min="2" max="16" step="1" value="{{ k1 }}" onChange="{{ onK1 }}" style="width:100%;accent-color:#f9a03f;margin-top:4px">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between"><span style="font:500 12px var(--font-header)">Usage vs. efficiency</span><span style="font:600 11px var(--font-code);color:var(--forge-primary)">{{ k2 }} / {{ k2inv }}</span></div>
+            <input type="range" min="0" max="100" step="5" value="{{ k2 }}" onChange="{{ onK2 }}" style="width:100%;accent-color:#f9a03f;margin-top:4px">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between"><span style="font:500 12px var(--font-header)">Injury haircut</span><span style="font:600 11px var(--font-code);color:var(--forge-primary)">{{ k3 }}%</span></div>
+            <input type="range" min="0" max="40" step="1" value="{{ k3 }}" onChange="{{ onK3 }}" style="width:100%;accent-color:#f9a03f;margin-top:4px">
+          </div>
+          <div onClick="{{ onRun }}" style="font:600 13px var(--font-header);text-align:center;background:{{ runBg }};color:#141327;padding:11px 0;border-radius:8px;cursor:pointer">{{ runLabel }}</div>
+          <div>
+            <div style="font:600 9.5px var(--font-code);letter-spacing:.1em;color:var(--text-secondary);margin-bottom:8px">SEASON MAE · ENSEMBLE</div>
+            <sc-for list="{{ sbRows }}" as="s" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:44px 1fr 60px 56px;align-items:center;padding:6px 0;border-top:1px solid rgba(51,65,85,.35)">
+                <span style="font:600 11px var(--font-code)">{{ s.pos }}</span>
+                <span style="font:400 10px var(--font-code);color:var(--text-secondary)">best src {{ s.best }}</span>
+                <span style="font:600 12px var(--font-code);color:var(--purple-primary);text-align:right">{{ s.ens }}</span>
+                <span style="font:600 10px var(--font-code);text-align:right;color:{{ s.dc }}">{{ s.delta }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section data-screen-label="Season Monitor" style="padding:36px 56px 64px;display:flex;flex-direction:column;gap:14px">
+  <div>
+    <div style="font:600 17px var(--font-header);color:var(--purple-primary)">4 · Season Monitor</div>
+    <div style="font:italic 400 13px var(--font-body);color:var(--text-secondary)">Your drafted team after the dust settles — weekly scoring vs. the model, and who was actually available to score it. Click a week bar for its box score.</div>
+  </div>
+  <div style="display:flex;gap:40px;align-items:flex-start">
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">DESKTOP · 1280</div>
+      <div style="width:1280px;background:var(--background);border:1px solid var(--border);border-radius:12px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary)">
+        <div style="display:flex;align-items:center;gap:20px;padding:11px 18px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:9px">
+            <img src="assets/tkforgeworks-mark.svg" alt="" style="width:22px;height:22px">
+            <span style="font:700 15px var(--font-header);color:var(--purple-primary)">Season Monitor</span>
+          </div>
+          <span style="font:400 11px var(--font-code);color:var(--text-secondary)">Forged in Mediocrity · week 9 of 14</span>
+          <span style="flex:1"></span>
+          <span style="font:400 11px var(--font-code);color:var(--text-secondary)">waivers run Wed 04:00 ET</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <sc-for list="{{ smStats }}" as="st" hint-placeholder-count="4">
+              <div style="background:var(--background-light);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 14px">
+                <div style="font:600 9px var(--font-code);letter-spacing:.08em;color:var(--text-secondary)">{{ st.l }}</div>
+                <div style="font:700 21px var(--font-code);color:var(--purple-primary);margin-top:2px">{{ st.v }}</div>
+                <div style="font:400 10.5px var(--font-code);color:var(--text-secondary)">{{ st.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:12px">
+            <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px">
+              <div style="display:flex;align-items:center">
+                <span style="font:600 10px var(--font-code);letter-spacing:.1em;color:var(--text-secondary)">WEEKLY SCORING · ACTUAL VS PROJECTED</span>
+                <span style="flex:1"></span>
+                <span style="display:flex;gap:12px;font:400 9.5px var(--font-code);color:var(--text-secondary)">
+                  <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--purple-tint)"></span>projected</span>
+                  <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--purple-primary)"></span>actual</span>
+                </span>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <sc-for list="{{ smWeeks }}" as="wk" hint-placeholder-count="8">
+                  <div onClick="{{ wk.pick }}" style="flex:1;border-radius:6px;padding:6px 6px 8px;cursor:pointer;background:{{ wk.bg }}" style-hover="background:rgba(196,149,244,.07)">
+                    <div style="height:112px;display:flex;align-items:flex-end;gap:3px">
+                      <span style="flex:1;height:{{ wk.projH }};background:var(--purple-tint);border-radius:3px 3px 0 0;display:block"></span>
+                      <span style="flex:1;height:{{ wk.actH }};background:var(--purple-primary);border-radius:3px 3px 0 0;display:block"></span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+                      <span style="font:500 10px var(--font-code);color:var(--text-secondary)">{{ wk.w }}</span>
+                      <span style="font:600 9px var(--font-code);color:{{ wk.resC }};background:{{ wk.resBg }};border-radius:4px;padding:1px 5px">{{ wk.res }}</span>
+                    </div>
+                    <div style="font:600 10.5px var(--font-code);color:var(--text-primary)">{{ wk.act }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="border:1px solid var(--purple-tint);background:var(--background-light);border-radius:8px;padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+              <div>
+                <div style="font:600 14px var(--font-header);color:var(--purple-primary)">{{ smDetTitle }}</div>
+                <div style="font:400 10.5px var(--font-code);color:var(--text-secondary);margin-top:2px">{{ smDetOpp }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;font:400 12px var(--font-body);color:var(--text-primary)">
+                <div><span style="font:600 9px var(--font-code);letter-spacing:.08em;color:var(--success-primary)">TOP SCORER</span><br>{{ smDetTop }}</div>
+                <div><span style="font:600 9px var(--font-code);letter-spacing:.08em;color:var(--error-primary)">BIGGEST MISS</span><br>{{ smDetBust }}</div>
+                <div><span style="font:600 9px var(--font-code);letter-spacing:.08em;color:var(--text-secondary)">BENCH REGRET</span><br>{{ smDetBench }}</div>
+              </div>
+              <div style="font:italic 400 11px/1.5 var(--font-body);color:var(--text-secondary);margin-top:auto">Rendered from the same payload the Sunday digest email uses.</div>
+            </div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:12px 16px">
+            <div style="display:flex;align-items:center">
+              <span style="font:600 10px var(--font-code);letter-spacing:.1em;color:var(--text-secondary)">STARTERS · AVAILABILITY + POINTS BY WEEK</span>
+              <span style="flex:1"></span>
+              <span style="display:flex;gap:12px;font:400 9.5px var(--font-code);color:var(--text-secondary)">
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--success-light)"></span>played</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--warning-light)"></span>questionable</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--error-light)"></span>out</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(51,65,85,.45)"></span>bye</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;border:1px solid rgba(51,65,85,.5)"></span>upcoming</span>
+              </span>
+            </div>
+            <div style="display:grid;grid-template-columns:150px 34px repeat(14,30px) minmax(120px,1fr) 56px 52px;gap:3px;align-items:center;margin-top:10px;padding-bottom:4px;font:600 9px var(--font-code);color:var(--text-secondary)">
+              <span>PLAYER</span><span></span>
+              <sc-for list="{{ smGridWeeks }}" as="w" hint-placeholder-count="14">
+                <span style="text-align:center">{{ w }}</span>
+              </sc-for>
+              <span style="text-align:center">TREND · W1–8</span><span style="text-align:right">TOTAL</span><span style="text-align:right">Δ PROJ</span>
+            </div>
+            <sc-for list="{{ smGrid }}" as="p" hint-placeholder-count="9">
+              <div style="display:grid;grid-template-columns:150px 34px repeat(14,30px) minmax(120px,1fr) 56px 52px;gap:3px;align-items:center;padding:3px 0;border-top:1px solid rgba(51,65,85,.35)">
+                <span style="font:500 12px var(--font-header);color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span>
+                <span style="font:500 9.5px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 0;text-align:center">{{ p.pos }}</span>
+                <sc-for list="{{ p.cells }}" as="c" hint-placeholder-count="14">
+                  <span style="height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:500 9px var(--font-code);background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }}">{{ c.t }}</span>
+                </sc-for>
+                <svg width="100%" height="22" viewBox="0 0 150 26" preserveAspectRatio="none" style="display:block"><polyline points="{{ p.spark }}" fill="none" stroke="var(--purple-primary)" stroke-width="1.8"></polyline></svg>
+                <span style="font:600 11.5px var(--font-code);color:var(--text-primary);text-align:right">{{ p.tot }}</span>
+                <span style="font:600 11px var(--font-code);text-align:right;color:{{ p.dc }}">{{ p.dStr }}</span>
+              </div>
+            </sc-for>
+            <div style="font:400 10.5px var(--font-code);color:var(--text-secondary);margin-top:8px">Cell number = PPR points that week. Δ PROJ = season total vs. ensemble projection for weeks available. McCaffrey's Δ is why the injury haircut knob exists.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:none">
+      <div style="font:500 11px var(--font-code);color:var(--text-secondary);margin-bottom:8px">MOBILE · 390</div>
+      <div style="width:390px;height:800px;background:var(--background);border:8px solid #1e293b;border-radius:44px;overflow:hidden;font-family:var(--font-header);color:var(--text-primary);display:flex;flex-direction:column">
+        <div style="display:flex;justify-content:space-between;padding:12px 24px 4px;font:600 11px var(--font-code);color:var(--text-secondary)"><span>9:41</span><span>LTE ▮▮▮</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 18px 10px;border-bottom:1px solid var(--border)">
+          <img src="assets/tkforgeworks-mark.svg" alt="" style="width:20px;height:20px">
+          <span style="font:700 15px var(--font-header);color:var(--purple-primary)">My Team</span>
+          <span style="flex:1"></span>
+          <span style="font:400 10px var(--font-code);color:var(--text-secondary)">week 9 · 5-3</span>
+        </div>
+        <div style="flex:1;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <sc-for list="{{ smStats }}" as="st" hint-placeholder-count="4">
+              <div style="background:var(--background-light);border:1px solid var(--purple-tint);border-radius:8px;padding:8px 11px">
+                <div style="font:600 8.5px var(--font-code);letter-spacing:.06em;color:var(--text-secondary)">{{ st.l }}</div>
+                <div style="font:700 17px var(--font-code);color:var(--purple-primary)">{{ st.v }}</div>
+                <div style="font:400 9px var(--font-code);color:var(--text-secondary)">{{ st.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+            <div style="font:600 9.5px var(--font-code);letter-spacing:.08em;color:var(--text-secondary)">WEEKLY SCORING</div>
+            <div style="display:flex;gap:4px;margin-top:8px">
+              <sc-for list="{{ smWeeks }}" as="wk" hint-placeholder-count="8">
+                <div onClick="{{ wk.pick }}" style="flex:1;border-radius:5px;padding:4px 3px 5px;cursor:pointer;background:{{ wk.bg }}">
+                  <div style="height:72px;display:flex;align-items:flex-end;gap:2px">
+                    <span style="flex:1;height:{{ wk.projH }};background:var(--purple-tint);border-radius:2px 2px 0 0;display:block"></span>
+                    <span style="flex:1;height:{{ wk.actH }};background:var(--purple-primary);border-radius:2px 2px 0 0;display:block"></span>
+                  </div>
+                  <div style="font:500 8.5px var(--font-code);color:var(--text-secondary);text-align:center;margin-top:4px">{{ wk.w }}</div>
+                  <div style="font:600 8.5px var(--font-code);color:{{ wk.resC }};text-align:center">{{ wk.res }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border-top:1px solid rgba(51,65,85,.35);margin-top:8px;padding-top:8px">
+              <div style="font:600 12px var(--font-header);color:var(--purple-primary)">{{ smDetTitle }}</div>
+              <div style="font:400 10.5px var(--font-code);color:var(--text-secondary);margin-top:2px">top: {{ smDetTop }} · bench regret: {{ smDetBench }}</div>
+            </div>
+          </div>
+          <div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+            <div style="font:600 9.5px var(--font-code);letter-spacing:.08em;color:var(--text-secondary);margin-bottom:4px">STARTERS · W1–14 AVAILABILITY</div>
+            <sc-for list="{{ smGrid }}" as="p" hint-placeholder-count="9">
+              <div style="padding:7px 0;border-top:1px solid rgba(51,65,85,.35)">
+                <div style="display:grid;grid-template-columns:1fr 70px 46px 42px;gap:8px;align-items:center">
+                  <span style="min-width:0"><span style="display:block;font:500 12px var(--font-header);color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span><span style="display:block;font:400 9px var(--font-code);color:var(--text-secondary)">{{ p.pos }}</span></span>
+                  <svg width="70" height="18" viewBox="0 0 150 26" preserveAspectRatio="none" style="display:block"><polyline points="{{ p.spark }}" fill="none" stroke="var(--purple-primary)" stroke-width="2"></polyline></svg>
+                  <span style="font:600 11px var(--font-code);color:var(--text-primary);text-align:right">{{ p.tot }}</span>
+                  <span style="font:600 10.5px var(--font-code);text-align:right;color:{{ p.dc }}">{{ p.dStr }}</span>
+                </div>
+                <div style="display:flex;gap:2px;margin-top:5px">
+                  <sc-for list="{{ p.cells }}" as="c" hint-placeholder-count="14">
+                    <span style="flex:1;height:14px;display:flex;align-items:center;justify-content:center;border-radius:3px;font:500 7.5px var(--font-code);background:{{ c.bg }};color:{{ c.fg }};border:1px solid {{ c.bd }}">{{ c.t }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;border-top:1px solid var(--border);padding:8px 10px 16px;background:var(--background)">
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"></path></svg><span style="font:500 9px var(--font-header)">Board</span></span>
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path></svg><span style="font:500 9px var(--font-header)">Draft</span></span>
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--purple-primary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0v.75h-15v-.75z"></path></svg><span style="font:500 9px var(--font-header)">Team</span></span>
+          <span style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"></path></svg><span style="font:500 9px var(--font-header)">Health</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section></x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;demoSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:1,&quot;max&quot;:12,&quot;step&quot;:1,&quot;default&quot;:6,&quot;unit&quot;:&quot;×&quot;,&quot;section&quot;:&quot;Draft demo&quot;,&quot;tsType&quot;:&quot;number&quot;},&quot;forcePanic&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;section&quot;:&quot;Draft demo&quot;,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const D = (name, pos, team, bye, sl, es, fm, vorp, tier, adp, inj, news, ry) => ({ name, pos, team, bye, sl, es, fm, vorp, tier, adp, inj: inj || '', news: news || '', ry: ry || 2021 });
+    this.P = [
+      D("Ja'Marr Chase", 'WR', 'CIN', 10, 356, 344, 352, 118, 1, 1.2),
+      D('Bijan Robinson', 'RB', 'ATL', 5, 338, 345, 336, 131, 1, 2.1),
+      D('Justin Jefferson', 'WR', 'MIN', 6, 334, 327, 328, 96, 1, 3.4),
+      D('CeeDee Lamb', 'WR', 'DAL', 7, 326, 319, 320, 88, 1, 4.0),
+      D('Jahmyr Gibbs', 'RB', 'DET', 8, 322, 312, 318, 109, 1, 4.6),
+      D('Saquon Barkley', 'RB', 'PHI', 9, 310, 301, 297, 94, 2, 5.8),
+      D('Amon-Ra St. Brown', 'WR', 'DET', 8, 301, 295, 298, 67, 2, 7.1),
+      D('Puka Nacua', 'WR', 'LAR', 6, 299, 290, 297, 64, 2, 8.3),
+      D('Malik Nabers', 'WR', 'NYG', 11, 291, 284, 290, 58, 2, 9.0, '', '', 2024),
+      D("De'Von Achane", 'RB', 'MIA', 6, 284, 262, 301, 83, 2, 10.4, '', 'Sleeper and ESPN see a timeshare; ForgeModel sees 5.9 YPC and refuses to apologize for it.'),
+      D('Christian McCaffrey', 'RB', 'SF', 9, 289, 276, 248, 71, 2, 13.9, 'Q', 'Calf tightness, limited Wednesday. ForgeModel has seen this movie and priced in the sequel.'),
+      D('Ashton Jeanty', 'RB', 'LV', 8, 262, 255, 288, 62, 3, 11.8, '', 'Forge is hot, the market is warm, ESPN is asleep. Somebody here is wrong and it is probably not the tape.', 2025),
+      D('Brock Bowers', 'TE', 'LV', 8, 252, 242, 246, 78, 3, 12.6, '', '', 2024),
+      D('Nico Collins', 'WR', 'HOU', 14, 266, 258, 262, 38, 3, 15.3),
+      D('A.J. Brown', 'WR', 'PHI', 9, 259, 252, 250, 33, 3, 16.9),
+      D('Drake London', 'WR', 'ATL', 5, 256, 249, 255, 31, 3, 17.4),
+      D('Derrick Henry', 'RB', 'BAL', 7, 251, 240, 232, 46, 3, 18.2, '', 'Age curve says decline. Henry says the age curve can come say that to his face.'),
+      D('Josh Allen', 'QB', 'BUF', 12, 392, 381, 384, 92, 3, 19.8),
+      D('Lamar Jackson', 'QB', 'BAL', 7, 384, 376, 372, 84, 3, 21.5),
+      D('Jonathan Taylor', 'RB', 'IND', 11, 244, 238, 242, 41, 4, 22.3),
+      D('Ladd McConkey', 'WR', 'LAC', 5, 246, 240, 244, 24, 4, 23.6, '', '', 2024),
+      D('Trey McBride', 'TE', 'ARI', 8, 234, 226, 230, 58, 4, 24.9),
+      D('Garrett Wilson', 'WR', 'NYJ', 12, 240, 233, 228, 19, 4, 26.0),
+      D('Kyren Williams', 'RB', 'LAR', 6, 235, 228, 218, 36, 4, 27.2),
+      D('Jayden Daniels', 'QB', 'WAS', 14, 372, 360, 368, 72, 4, 28.4, '', '', 2024),
+      D('Tee Higgins', 'WR', 'CIN', 10, 231, 224, 234, 14, 5, 30.1, 'Q'),
+      D('Breece Hall', 'RB', 'NYJ', 12, 228, 217, 210, 29, 5, 31.7),
+      D('George Kittle', 'TE', 'SF', 9, 222, 212, 216, 46, 5, 33.0),
+      D('Chuba Hubbard', 'RB', 'CAR', 11, 220, 214, 226, 26, 5, 35.4),
+      D('Davante Adams', 'WR', 'LAR', 6, 226, 216, 206, 10, 5, 34.2, '', 'The model is colder than the market. When that happens on a 33-year-old WR, believe the model.'),
+    ];
+    const posCount = {};
+    this.P.forEach((p, i) => {
+      p.rank = i + 1;
+      p.ens = Math.round(p.sl * 0.4 + p.es * 0.32 + p.fm * 0.28);
+      p.spread = Math.max(p.sl, p.es, p.fm) - Math.min(p.sl, p.es, p.fm);
+      p.split = p.spread >= 24;
+      p.d = +(p.adp - p.rank).toFixed(1);
+      posCount[p.pos] = (posCount[p.pos] || 0) + 1;
+      p.posRank = posCount[p.pos];
+    });
+    this.TC = { 1: '#c495f4', 2: '#38bdf8', 3: '#4ade80', 4: '#fbbf24', 5: '#f87171' };
+    // draft sim: 12 teams, my slot 7, my picks 7 and 18; current pick 15 (2.03)
+    this.SURV = { 11: 38, 14: 61, 16: 44, 17: 72, 19: 81, 20: 78, 21: 84, 22: 88, 23: 90, 24: 91, 25: 93, 26: 94, 27: 95, 28: 96, 29: 98, 30: 97 };
+    this.PS = { 11: 68.4, 14: 44.1, 16: 41.9, 17: 39.2, 19: 36.8, 20: 33.5, 22: 31.0, 21: 26.2, 25: 24.8, 23: 22.4, 24: 21.7, 28: 19.9, 26: 15.2, 27: 14.8, 29: 12.1, 30: 11.4 };
+    this.QUEUE = [
+      { pk: '2.03', team: 'Gridiron Gremlins', rank: 14 },
+      { pk: '2.04', team: 'Bench Warmers', rank: 16 },
+      { pk: '2.05', team: 'Scrambled Legs', rank: 17 },
+    ];
+    this.TICKER0 = [
+      { pk: '2.02', team: 'Draft Punk', rank: 18 },
+      { pk: '2.01', team: 'The Waiver Act', rank: 13 },
+      { pk: '1.12', team: 'Scrambled Legs', rank: 12 },
+      { pk: '1.11', team: 'Bench Warmers', rank: 10 },
+      { pk: '1.10', team: 'Gridiron Gremlins', rank: 9 },
+      { pk: '1.09', team: 'Draft Punk', rank: 8 },
+      { pk: '1.08', team: 'The Waiver Act', rank: 6 },
+    ];
+    this.SB0 = {
+      QB: { sl: 73.2, es: 82.4, fm: 70.8, ens: 69.4, nv: 91.3 },
+      RB: { sl: 57.4, es: 62.9, fm: 58.8, ens: 55.9, nv: 73.7 },
+      WR: { sl: 55.6, es: 63.3, fm: 57.1, ens: 54.2, nv: 71.3 },
+      TE: { sl: 39.1, es: 42.3, fm: 40.0, ens: 38.3, nv: 52.2 },
+      K: { sl: 32.7, es: 30.5, fm: null, ens: 30.1, nv: 38.6 },
+      DEF: { sl: 25.4, es: 28.0, fm: null, ens: 24.9, nv: 27.0 },
+    };
+    this.SLR = { QB: 0.529, RB: 0.523, WR: 0.533, TE: 0.520, K: 0.482, DEF: 0.524 };
+    this.WEEKS = [
+      { w: 1, proj: 126.8, act: 131.4, pa: 118.2, res: 'W', opp: 'Draft Punk', bench: 3.8 },
+      { w: 2, proj: 128.2, act: 118.6, pa: 124.9, res: 'L', opp: 'Bench Warmers', bench: 16.4 },
+      { w: 3, proj: 122.5, act: 109.2, pa: 121.4, res: 'L', opp: 'Scrambled Legs', bench: 12.2 },
+      { w: 4, proj: 121.0, act: 127.7, pa: 103.5, res: 'W', opp: 'The Waiver Act', bench: 2.1 },
+      { w: 5, proj: 117.4, act: 112.3, pa: 108.8, res: 'W', opp: 'Gridiron Gremlins', bench: 8.8 },
+      { w: 6, proj: 124.6, act: 129.8, pa: 115.2, res: 'W', opp: 'Fourth & Longshots', bench: 5.4 },
+      { w: 7, proj: 120.8, act: 106.4, pa: 119.7, res: 'L', opp: 'Draft Punk', bench: 19.2 },
+      { w: 8, proj: 125.4, act: 133.6, pa: 111.2, res: 'W', opp: 'Bench Warmers', bench: 4.6 },
+    ];
+    this.ROSTER = [
+      { name: 'Jayden Daniels', short: 'Daniels', pos: 'QB', bye: 14, proj: 21.9, projTot: 175.2, pts: [24.3, 18.6, 27.1, 21.4, 19.8, 30.2, 15.4, 23.7] },
+      { name: 'Christian McCaffrey', short: 'McCaffrey', pos: 'RB', bye: 9, proj: 16.6, projTot: 132.8, pts: [19.4, 16.2, 11.8, 9.6, 0, 17.3, 14.9, 21.2], st: { 3: 'Q', 4: 'Q', 5: 'O' } },
+      { name: "De'Von Achane", short: 'Achane', pos: 'RB', bye: 6, proj: 14.8, projTot: 103.6, pts: [15.2, 22.8, 13.4, 18.1, 24.6, 0, 16.9, 12.3] },
+      { name: 'Amon-Ra St. Brown', short: 'St. Brown', pos: 'WR', bye: 8, proj: 17.4, projTot: 121.8, pts: [18.7, 14.2, 21.9, 16.4, 19.2, 22.4, 13.8, 0] },
+      { name: 'Malik Nabers', short: 'Nabers', pos: 'WR', bye: 11, proj: 15.9, projTot: 111.3, pts: [16.4, 21.2, 14.8, 19.6, 12.1, 0, 18.4, 15.9], st: { 6: 'O' } },
+      { name: 'Brock Bowers', short: 'Bowers', pos: 'TE', bye: 8, proj: 12.9, projTot: 90.3, pts: [12.6, 15.8, 9.4, 13.2, 16.7, 11.9, 8.2, 0], st: { 7: 'Q' } },
+      { name: 'Chuba Hubbard', short: 'Hubbard', pos: 'FLX', bye: 11, proj: 12.7, projTot: 101.6, pts: [11.2, 8.7, 14.6, 10.3, 12.8, 9.4, 16.2, 11.7] },
+      { name: 'Chris Boswell', short: 'Boswell', pos: 'K', bye: 5, proj: 8.5, projTot: 59.5, pts: [9, 11, 7, 8, 0, 12, 9, 10] },
+      { name: 'Broncos D/ST', short: 'Broncos', pos: 'DEF', bye: 12, proj: 8.8, projTot: 70.4, pts: [8, 12, 5, 14, 9, 7, 11, 6] },
+    ];
+    this.state = this.freshState();
+  }
+  freshState() {
+    return {
+      sort: 'ens', pos: 'ALL', posM: 'ALL', sel: null, mSel: null,
+      k1: 6, k2: 65, k3: 15, fw: { QB: 18, RB: 24, WR: 22, TE: 20, K: 0, DEF: 0 }, useOv: true,
+      running: false, runV: 1, ranAt: 'weights v1 · fitted 2026-08-19 · inverse-MAE, 2023-25 pooled',
+      sb: JSON.parse(JSON.stringify(this.SB0)), deltas: {},
+      timer: 18, timerMax: 18, qi: 0, until: 3, taken: [], ticker: this.TICKER0.slice(),
+      myTurn: false, drafted: false, draftedRank: null, selWeek: 8,
+    };
+  }
+  componentDidMount() { this._iv = setInterval(() => this.tick(), 1000); }
+  componentWillUnmount() { clearInterval(this._iv); clearTimeout(this._to); }
+  spd() { return Math.max(1, this.props.demoSpeed ?? 6); }
+  tick() {
+    const s = this.state;
+    if (s.drafted) return;
+    const t = s.timer - this.spd();
+    if (t > 0) { this.setState({ timer: t }); return; }
+    if (s.myTurn) { this.draftRec(); return; }
+    this.advance();
+  }
+  advance() {
+    const s = this.state;
+    if (s.qi >= this.QUEUE.length) return;
+    const q = this.QUEUE[s.qi];
+    const p = this.P[q.rank - 1];
+    const ticker = [{ pk: q.pk, team: q.team, rank: q.rank }, ...s.ticker];
+    const taken = [...s.taken, q.rank];
+    const until = s.until - 1;
+    if (until <= 0) this.setState({ qi: s.qi + 1, ticker, taken, until: 0, myTurn: true, timer: 45, timerMax: 45 });
+    else this.setState({ qi: s.qi + 1, ticker, taken, until, timer: 18, timerMax: 18 });
+  }
+  draftRec() {
+    const s = this.state;
+    const rec = this.recRank();
+    this.setState({ drafted: true, draftedRank: rec, myTurn: false, taken: [...s.taken, rec], ticker: [{ pk: '2.06', team: 'YOU', rank: rec }, ...s.ticker] });
+  }
+  recRank() { return this.availRanks()[0] || 11; }
+  availRanks() {
+    const gone = new Set([...this.state.taken]);
+    return Object.keys(this.PS).map(Number).filter(r => !gone.has(r)).sort((a, b) => this.PS[b] - this.PS[a]);
+  }
+  gen(seed, n, base, amp, w, h, up) {
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      let v = base + amp * Math.sin(seed * 3.7 + i * 1.9) * 0.6 + amp * Math.sin(seed * 1.3 + i * 0.7) * 0.4;
+      if (up) v += (i / n) * amp * 1.4;
+      const y = h - 4 - ((v - (base - amp)) / (2.4 * amp)) * (h - 8);
+      pts.push(`${(i * (w - 8) / (n - 1) + 4).toFixed(1)},${Math.max(3, Math.min(h - 3, y)).toFixed(1)}`);
+    }
+    return pts.join(' ');
+  }
+  detailVM(p) {
+    if (!p) return null;
+    const mx = Math.max(p.sl, p.es, p.fm, p.ens);
+    const bw = v => `${Math.round(v / mx * 100)}%`;
+    const seed = p.rank * 7 + 3;
+    const av = (f, yr) => (p.ry > yr ? '—' : String(Math.round(p.ens * f + ((seed * yr) % 11) - 5)));
+    const fl = +(p.ens / 17 * 0.55).toFixed(1), md = +(p.ens / 17).toFixed(1), cl = +(p.ens / 17 * 1.62).toFixed(1);
+    const scale = cl * 1.15;
+    const isQB = p.pos === 'QB';
+    const uBase = isQB ? 7.5 : (p.pos === 'RB' ? 14 : 24);
+    const rising = p.d < -1;
+    return {
+      name: p.name, meta: `${p.pos}${p.posRank} · ${p.team} · Bye ${p.bye} · ADP ${p.adp}`,
+      inj: p.inj === 'Q' ? 'QUESTIONABLE' : p.inj, hasInj: !!p.inj,
+      bars: [
+        { l: 'Sleeper', v: p.sl, w: bw(p.sl), c: '#a05cf7' },
+        { l: 'ESPN', v: p.es, w: bw(p.es), c: '#38bdf8' },
+        { l: 'ForgeModel', v: p.fm, w: bw(p.fm), c: '#f9a03f' },
+        { l: 'Ensemble', v: p.ens, w: bw(p.ens), c: '#c495f4' },
+      ],
+      a23: av(0.78, 2023), a24: av(0.9, 2024), a25: av(0.97, 2025),
+      uLabel: isQB ? 'RUSH ATT / WK · L10' : 'TARGET SHARE % · L10',
+      tgtLast: isQB ? `${(uBase + 1.2).toFixed(1)}` : `${(uBase + 2.4).toFixed(1)}%`,
+      tgtPts: this.gen(seed, 10, uBase, uBase * 0.3, 150, 34),
+      snapLast: '81%', snapPts: this.gen(seed + 5, 10, 78, 9, 150, 34),
+      fl, md, cl,
+      rngL: `${Math.round(fl / scale * 100)}%`, rngW: `${Math.round((cl - fl) / scale * 100)}%`, mdX: `${Math.round(md / scale * 100)}%`,
+      adpPts: this.gen(seed + 9, 12, 16, 5, 150, 30, p.d > 1),
+      adpTrend: p.d > 1 ? `${(p.adp * 0.78).toFixed(1)} → ${p.adp} (falling)` : rising ? `${(p.adp * 1.2).toFixed(1)} → ${p.adp} (rising)` : `steady near ${p.adp}`,
+      adpTc: p.d > 1 ? 'var(--success-primary)' : rising ? 'var(--warning-primary)' : 'var(--text-secondary)',
+      depth: `${p.pos}${p.posRank <= 3 ? '1' : '2'} — ${p.team}. Every-down role, no committee in sight.`,
+      news: p.news || 'No news. In this business, that is the best kind of news.',
+    };
+  }
+  spark(arr, w, h) {
+    const mx = Math.max(...arr) * 1.12 || 1;
+    return arr.map((v, i) => `${(i * (w - 6) / (arr.length - 1) + 3).toFixed(1)},${(h - 3 - v / mx * (h - 6)).toFixed(1)}`).join(' ');
+  }
+  seasonVals() {
+    const s = this.state;
+    const smWeeks = this.WEEKS.map(x => ({
+      w: 'W' + x.w, proj: x.proj.toFixed(1), act: x.act.toFixed(1),
+      projH: `${(x.proj / 140 * 100).toFixed(1)}%`, actH: `${(x.act / 140 * 100).toFixed(1)}%`,
+      res: x.res, resC: x.res === 'W' ? 'var(--success-text)' : 'var(--error-text)',
+      resBg: x.res === 'W' ? 'var(--success-light)' : 'var(--error-light)',
+      bg: s.selWeek === x.w ? 'rgba(196,149,244,.12)' : 'transparent',
+      pick: () => this.setState({ selWeek: x.w }),
+    }));
+    const dw = this.WEEKS[s.selWeek - 1];
+    let top = null, bust = null;
+    this.ROSTER.forEach(p => {
+      const w = s.selWeek;
+      if (w === p.bye || (p.st && p.st[w] === 'O')) return;
+      const pts = p.pts[w - 1], d = +(pts - p.proj).toFixed(1);
+      if (!top || pts > top.pts) top = { n: p.short, pts };
+      if (!bust || d < bust.d) bust = { n: p.short, pts, d };
+    });
+    const smGridWeeks = [];
+    for (let i = 1; i <= 14; i++) smGridWeeks.push(i);
+    const smGrid = this.ROSTER.map(p => {
+      const cells = smGridWeeks.map(w => {
+        const past = w <= 8;
+        const st = w === p.bye ? 'B' : (p.st && p.st[w]) || (past ? 'A' : 'F');
+        if (st === 'B') return { bg: 'rgba(51,65,85,.45)', fg: 'var(--text-secondary)', t: 'B', bd: 'transparent' };
+        if (st === 'O') return { bg: 'var(--error-light)', fg: 'var(--error-text)', t: 'O', bd: 'transparent' };
+        if (st === 'Q') return { bg: 'var(--warning-light)', fg: 'var(--warning-text)', t: past ? p.pts[w - 1].toFixed(0) : 'Q', bd: 'transparent' };
+        if (!past) return { bg: 'transparent', fg: 'var(--text-secondary)', t: '', bd: 'rgba(51,65,85,.4)' };
+        return { bg: 'var(--success-light)', fg: 'var(--success-text)', t: p.pts[w - 1].toFixed(0), bd: 'transparent' };
+      });
+      const tot = p.pts.reduce((a, b) => a + b, 0);
+      const d = +(tot - p.projTot).toFixed(1);
+      return {
+        name: p.name, pos: p.pos, cells, spark: this.spark(p.pts, 150, 26),
+        tot: tot.toFixed(1), dStr: (d >= 0 ? '+' : '−') + Math.abs(d).toFixed(1),
+        dc: d >= 0 ? 'var(--success-primary)' : 'var(--error-primary)',
+      };
+    });
+    return {
+      smWeeks, smGridWeeks, smGrid,
+      smStats: [
+        { l: 'RECORD', v: '5-3', sub: '3rd of 12 · won 3 of last 4' },
+        { l: 'POINTS FOR', v: '969.0', sub: 'against 922.9 · net +46.1' },
+        { l: 'VS PROJECTION', v: '−17.7', sub: 'beat the model 4 of 8 weeks' },
+        { l: 'ROSTER HEALTH', v: '8 / 9', sub: 'McCaffrey on bye W9 · rest active' },
+      ],
+      smDetTitle: `Week ${s.selWeek} · ${dw.res === 'W' ? 'won' : 'lost'} ${dw.act.toFixed(1)}–${dw.pa.toFixed(1)}`,
+      smDetOpp: `vs ${dw.opp} · projected ${dw.proj.toFixed(1)}`,
+      smDetTop: `${top.n} · ${top.pts.toFixed(1)} pts`,
+      smDetBust: `${bust.n} · ${bust.pts.toFixed(1)} pts (${bust.d >= 0 ? '+' : '−'}${Math.abs(bust.d).toFixed(1)} vs proj)`,
+      smDetBench: `${dw.bench.toFixed(1)} pts left on bench`,
+    };
+  }
+  renderVals() {
+    const s = this.state;
+    document.documentElement.classList.toggle('dark', (this.props.theme ?? 'dark') === 'dark');
+    // ---- board ----
+    const chip = (label, active, set) => ({
+      label, pick: () => this.setState(set),
+      fg: active ? 'var(--purple-primary)' : 'var(--text-secondary)',
+      bg: active ? 'var(--purple-tint)' : 'transparent',
+      bd: active ? 'var(--purple-primary)' : 'var(--border)',
+    });
+    const posChips = ['ALL', 'QB', 'RB', 'WR', 'TE'].map(x => chip(x, s.pos === x, { pos: x }));
+    const posChipsM = ['ALL', 'QB', 'RB', 'WR', 'TE'].map(x => chip(x, s.posM === x, { posM: x }));
+    const sorts = [['ens', 'Ensemble'], ['sl', 'Sleeper'], ['es', 'ESPN'], ['fm', 'ForgeModel'], ['adp', 'ADP']];
+    const sortTabs = sorts.map(([k, label]) => ({
+      label, pick: () => this.setState({ sort: k }),
+      fg: s.sort === k ? 'var(--purple-primary)' : 'var(--text-secondary)',
+      bg: s.sort === k ? 'var(--purple-tint)' : 'transparent',
+    }));
+    const hc = k => (s.sort === k ? 'var(--purple-primary)' : 'var(--text-secondary)');
+    let list = this.P.filter(p => s.pos === 'ALL' || p.pos === s.pos);
+    if (s.sort === 'adp') list = [...list].sort((a, b) => a.adp - b.adp);
+    else if (s.sort !== 'ens') list = [...list].sort((a, b) => b[s.sort] - a[s.sort]);
+    const rowVM = p => ({
+      isRow: true, isBreak: false, rank: p.rank, name: p.name,
+      sub: `${p.team} · ${p.pos}${p.posRank}`, pos: p.pos, bye: p.bye,
+      sl: p.sl, es: p.es, fm: p.fm, ens: p.ens, vorp: p.vorp, tier: p.tier, tc: this.TC[p.tier],
+      adp: p.adp.toFixed(1), dStr: (p.d > 0 ? '+' : '') + p.d.toFixed(1),
+      dc: p.d > 1 ? 'var(--success-primary)' : p.d < -1 ? 'var(--error-primary)' : 'var(--text-secondary)',
+      split: p.split, splitStr: `±${p.spread}`, hasInj: !!p.inj, inj: p.inj,
+      open: () => this.setState({ sel: p.rank }),
+    });
+    const rows = [];
+    let lastTier = 0;
+    list.forEach((p, i) => {
+      if (s.sort === 'ens' && p.tier !== lastTier) {
+        const gap = i > 0 ? `−${list[i - 1].ens - p.ens} pts off the last tier` : 'the ones you brag about';
+        rows.push({ isBreak: true, isRow: false, label: `TIER ${p.tier}`, tc: this.TC[p.tier], gap });
+        lastTier = p.tier;
+      }
+      rows.push(rowVM(p));
+    });
+    const mRows = this.P.filter(p => s.posM === 'ALL' || p.pos === s.posM).map(p => ({
+      ...rowVM(p), open: () => this.setState({ mSel: p.rank }),
+    }));
+    const sel = this.detailVM(s.sel ? this.P[s.sel - 1] : null);
+    const msel = this.detailVM(s.mSel ? this.P[s.mSel - 1] : null);
+    // ---- command center ----
+    const gone = new Set(s.taken);
+    const availRanks = this.availRanks();
+    const avail = availRanks.map((r, i) => {
+      const p = this.P[r - 1];
+      const sv = this.SURV[r] || 95;
+      return {
+        i: i + 1, name: p.name, sub: `${p.team} · bye ${p.bye}`, pos: p.pos, ens: p.ens, vorp: p.vorp,
+        tier: p.tier, tc: this.TC[p.tier], surv: sv, sw: `${sv}%`,
+        sc: sv < 45 ? 'var(--error-primary)' : sv < 70 ? 'var(--warning-primary)' : 'var(--success-primary)',
+        run: p.pos === 'WR',
+      };
+    });
+    const recR = s.drafted ? (s.draftedRank || 11) : (availRanks[0] || 11);
+    const rec = this.P[recR - 1];
+    const alts = (s.drafted ? availRanks.slice(0, 2) : availRanks.slice(1, 3)).map(r => this.P[r - 1].name);
+    const pickNo = 14 + s.qi + (s.drafted ? 1 : 0);
+    const curPickNo = Math.min(pickNo + 1, 18);
+    const rd2 = curPickNo - 12;
+    const onClockTeam = s.drafted ? 'Pick is in — waiting on 2.07' : s.myTurn ? 'YOU — Forged in Mediocrity' : (this.QUEUE[s.qi] ? this.QUEUE[s.qi].team : '—');
+    const timerS = Math.max(0, Math.ceil(s.timer));
+    const timerColor = s.drafted ? 'var(--text-secondary)' : timerS <= 10 ? 'var(--error-primary)' : timerS <= 20 ? 'var(--warning-primary)' : 'var(--text-primary)';
+    const untilYou = s.myTurn ? 0 : s.until;
+    const slots = [['QB', ''], ['RB', s.drafted ? 'C. McCaffrey' : ''], ['RB', ''], ['WR', 'A. St. Brown'], ['WR', ''], ['TE', ''], ['FLX', ''], ['K', ''], ['DEF', ''], ['BN', s.drafted ? '0 / 6' : '0 / 6']].map(([sl, v]) => ({
+      s: sl, v: v || '—', fg: v ? 'var(--text-primary)' : 'var(--text-secondary)',
+      bs: v ? 'solid' : 'dashed', bd: v ? 'var(--purple-primary)' : 'var(--border)', bg: v ? 'var(--purple-tint)' : 'transparent',
+    }));
+    const alerts = [
+      { t: 'warning', title: 'Tier cliff — RB', body: 'McCaffrey is the last tier-2 back. The next RB tier starts 24 pts lower.' },
+      { t: 'info', title: 'WR run', body: '3 of the last 5 picks are wideouts. London probably does not come back to you.' },
+      { t: 'success', title: 'Value faller', body: 'CMC is 2.9 picks past ADP. The market is colder than the model.' },
+      { t: 'error', title: 'Injury watch', body: 'CMC (Q, calf). ForgeModel already haircuts him 14% — the discount is priced in.' },
+    ].map(a => ({ ...a, bg: `var(--${a.t}-light)`, bd: `var(--${a.t}-primary)`, fg: `var(--${a.t}-text)` }));
+    const ticker = s.ticker.slice(0, 8).map(t => {
+      const p = this.P[t.rank - 1];
+      return { pk: t.pk, team: t.team, nm: p.name, pos: p.pos };
+    });
+    // ---- garage ----
+    const clampFw = pos => Math.min(40, Math.max(0, s.fw[pos]));
+    const wRows = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].map(pos => {
+      const fw = this.SB0[pos].fm === null ? 0 : clampFw(pos);
+      const slp = Math.round((100 - fw) * this.SLR[pos]);
+      const esp = 100 - fw - slp;
+      return {
+        pos, fw, slW: `${slp}%`, esW: `${esp}%`, fwW: `${fw}%`, split: `${slp} / ${esp} / ${fw}`,
+        onFw: e => this.setState({ fw: { ...s.fw, [pos]: +e.target.value } }),
+      };
+    });
+    const sbRows = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].map(pos => {
+      const b = s.sb[pos];
+      const d = s.deltas[pos];
+      const srcs = [['SLPR', b.sl], ['ESPN', b.es], ['FRGE', b.fm]].filter(x => x[1] !== null);
+      srcs.sort((a, bb) => a[1] - bb[1]);
+      return {
+        pos, sl: b.sl.toFixed(1), es: b.es.toFixed(1), fm: b.fm === null ? '—' : b.fm.toFixed(1),
+        ens: b.ens.toFixed(1), nv: b.nv.toFixed(1), best: srcs[0][0],
+        delta: d === undefined ? '—' : (d <= 0 ? `▼${Math.abs(d).toFixed(1)}` : `▲${d.toFixed(1)}`),
+        dc: d === undefined ? 'var(--text-secondary)' : d <= 0 ? 'var(--success-primary)' : 'var(--error-primary)',
+      };
+    });
+    return {
+      posChips, posChipsM, sortTabs, rows, mRows, rowCount: list.length,
+      hSl: hc('sl'), hEs: hc('es'), hFm: hc('fm'), hEns: hc('ens'), hAdp: hc('adp'),
+      hasSel: !!sel, sel, closeSel: () => this.setState({ sel: null }),
+      hasMSel: !!msel, msel, closeMSel: () => this.setState({ mSel: null }),
+      // command center
+      curPickLabel: `2.${String(rd2).padStart(2, '0')}`, curPickNo, onClockTeam,
+      timerS, timerColor, timerW: `${Math.round(s.timer / s.timerMax * 100)}%`,
+      untilBig: s.drafted ? '✓' : s.myTurn ? 'NOW' : String(untilYou),
+      untilCap: s.drafted ? 'PICK IS IN' : s.myTurn ? "YOU'RE UP" : 'PICKS UNTIL YOU',
+      untilFg: s.myTurn ? '#141327' : 'var(--text-secondary)',
+      untilBg: s.myTurn ? 'var(--purple-primary)' : 'transparent',
+      untilBd: s.myTurn ? 'var(--purple-primary)' : 'var(--border)',
+      slots, avail: avail.slice(0, 12), availM: avail.slice(0, 8), alerts, ticker,
+      nextPickLabel: s.myTurn || s.drafted ? 'PICK 31' : 'PICK 18',
+      recLabel: s.drafted ? 'DRAFTED — 2.06' : `THE PICK · SCORE ${(this.PS[recR] || 0).toFixed(1)}`,
+      recLabelC: s.myTurn ? 'var(--forge-primary)' : 'var(--text-secondary)',
+      recBd: s.myTurn ? 'var(--forge-primary)' : 'var(--purple-tint)',
+      recName: rec.name,
+      recWhy: s.drafted
+        ? 'On the roster. Next decision at pick 31 — the alternates below are your early watch list.'
+        : recR === 11
+        ? '38% he survives to your next pick. Tier-2 back at a tier-3 price; the WR run means London likely returns and CMC will not.'
+        : 'Best pick-score on the board — highest VORP that will not be there next time around.',
+      recPanicSub: `${rec.pos} · ${rec.team} · last tier-${rec.tier} ${rec.pos} on the board`,
+      alt1: alts[0] || '—', alt2: alts[1] || '—',
+      myTurnLive: s.myTurn && !s.drafted, drafted: s.drafted,
+      panic: (this.props.forcePanic ?? false) || (s.myTurn && !s.drafted && timerS <= 30),
+      draftRec: () => this.draftRec(), skip: () => (s.myTurn ? this.draftRec() : this.advance()),
+      resetSim: () => this.setState(this.freshState()), demoSpd: this.spd(),
+      // garage
+      k1: s.k1, k2: s.k2, k2inv: 100 - s.k2, k3: s.k3,
+      onK1: e => this.setState({ k1: +e.target.value }),
+      onK2: e => this.setState({ k2: +e.target.value }),
+      onK3: e => this.setState({ k3: +e.target.value }),
+      onRun: () => this.runBacktest(),
+      runBg: s.running ? 'var(--text-secondary)' : 'var(--purple-primary)',
+      runLabel: s.running ? 'Fitting 2023–25…' : 'Re-run backtest',
+      ranAt: s.ranAt, ranAtShort: `v${s.runV}`,
+      useOv: s.useOv, onToggleOv: () => this.setState({ useOv: !s.useOv }),
+      ovBg: s.useOv ? 'var(--purple-primary)' : 'rgba(51,65,85,.8)', ovKnob: s.useOv ? '16px' : '2px',
+      wOpacity: s.useOv ? '1' : '0.45',
+      wRows, sbRows,
+      ...this.seasonVals(),
+    };
+  }
+  runBacktest() {
+    if (this.state.running) return;
+    this.setState({ running: true });
+    this._to = setTimeout(() => {
+      const s = this.state;
+      const sb = JSON.parse(JSON.stringify(s.sb));
+      const deltas = {};
+      ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'].forEach(pos => {
+        const base = this.SB0[pos].ens;
+        const fw = this.SB0[pos].fm === null ? 26 : s.fw[pos];
+        const pen = Math.abs(s.k1 - 5) * 2 + Math.abs(s.k2 - 62) * 0.35 + Math.abs(s.k3 - 12) * 0.8 + Math.abs(fw - 26) * 0.9;
+        const next = +(base * (0.958 + 0.0011 * pen)).toFixed(1);
+        deltas[pos] = +(next - sb[pos].ens).toFixed(1);
+        sb[pos].ens = next;
+      });
+      this.setState({ running: false, sb, deltas, runV: s.runV + 1, ranAt: `weights v${s.runV + 1} · just now · inverse-MAE, 2023-25 pooled` });
+    }, 1100);
+  }
+}
+</script>
+</body>
+</html>

@@ -5,6 +5,10 @@ Thumbs.db
 # Editor directories
 .vscode/
 .idea/
+*.iml
+*.ipr
+*.iws
+*.swp
 
 # Logs
 *.log
@@ -16,4 +20,21 @@ Thumbs.db
 # Claude Code local settings (machine-specific permissions)
 .claude/settings.local.json
 
-# Flutter/Dart-specific ignores will be added by `flutter create` when the app skeleton lands.
+# Flutter / Dart / Pub
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+migrate_working_dir/
+**/doc/api/
+
+# Symbolication / obfuscation
+app.*.symbols
+app.*.map.json
+
+# Android Studio build artifacts
+/android/app/debug
+/android/app/profile
+/android/app/release
