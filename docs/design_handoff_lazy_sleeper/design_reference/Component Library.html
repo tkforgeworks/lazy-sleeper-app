@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="colors_and_type.css">
+<script src="_ds_bundle.js"></script>
+<script>document.documentElement.classList.add('dark');</script>
+<style>body{margin:0;background:#0b1120}a{color:#a05cf7}a:hover{color:#c495f4}</style>
+</helmet>
+
+<section style="padding:44px 56px 8px;max-width:1240px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <img src="assets/tkforgeworks-mark.svg" alt="" style="width:34px;height:34px">
+    <div style="font:700 24px var(--font-header);color:var(--purple-primary)">Lazy Sleeper — component library</div>
+  </div>
+  <div style="font:italic 400 13.5px/1.6 var(--font-body);color:var(--text-secondary);margin-top:8px;max-width:820px">Every reusable piece from the four screens, isolated with measurements, token references, and a suggested Flutter widget mapping. Dark values shown; light values ship in the token file. Pairs with the handoff package (README + COMPONENTS.md + ls_theme.dart).</div>
+</section>
+
+<section data-screen-label="Foundations" style="padding:28px 56px;max-width:1240px">
+  <div style="font:600 15px var(--font-header);color:var(--purple-primary);margin-bottom:12px">Foundations</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--purple-primary)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">purple-primary</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#C495F4 · lt #8532D6</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--purple-secondary)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">purple-secondary</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#A05CF7 · lt #9632F3</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--purple-tint)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">purple-tint</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#372367 · lt #F2E9FE</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--forge-primary)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">forge-primary</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#F9A03F · lt #F68F25</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--forge-gradient)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">forge-gradient</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">panic mode + logo only</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--background)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">background</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#0F172A · lt #FFFFFF</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--background-light)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">background-light</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#1E293B · lt #F8FAFC</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--border)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">border</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#334155 · lt #E2E8F0</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--text-primary)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">text-primary</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#E2E8F0 · lt #334155</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;background:var(--text-secondary)"></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">text-secondary</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#CBD5E1 · lt #64748B</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;display:flex"><span style="flex:1;background:var(--success-primary)"></span><span style="flex:1;background:var(--success-light)"></span><span style="flex:1;background:var(--success-text)"></span></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">success ·3</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#4ADE80 #052E16 #86EFAC</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;display:flex"><span style="flex:1;background:var(--warning-primary)"></span><span style="flex:1;background:var(--warning-light)"></span><span style="flex:1;background:var(--warning-text)"></span></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">warning ·3</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#FBBF24 #451A03 #FCD34D</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;display:flex"><span style="flex:1;background:var(--error-primary)"></span><span style="flex:1;background:var(--error-light)"></span><span style="flex:1;background:var(--error-text)"></span></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">error ·3</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#F87171 #450A0A #FCA5A5</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;display:flex"><span style="flex:1;background:var(--info-primary)"></span><span style="flex:1;background:var(--info-light)"></span><span style="flex:1;background:var(--info-text)"></span></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">info ·3</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">#38BDF8 #082F49 #7DD3FC</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;display:flex"><span style="flex:1;background:#c495f4"></span><span style="flex:1;background:#38bdf8"></span><span style="flex:1;background:#4ade80"></span><span style="flex:1;background:#fbbf24"></span><span style="flex:1;background:#f87171"></span></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">tier scale T1–T5</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">app-specific, both themes</div></div></div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden"><div style="height:40px;display:flex"><span style="flex:1;background:#a05cf7"></span><span style="flex:1;background:#38bdf8"></span><span style="flex:1;background:#f9a03f"></span><span style="flex:1;background:#c495f4"></span></div><div style="padding:7px 10px"><div style="font:600 9.5px var(--font-code);color:var(--text-primary)">source scale</div><div style="font:400 9px var(--font-code);color:var(--text-secondary)">Slpr · ESPN · Forge · Ens</div></div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div style="border:1px solid var(--border);border-radius:8px;padding:14px 18px;background:var(--background)">
+      <div style="font:600 12px var(--font-code);color:var(--purple-primary);margin-bottom:10px">Type scale (app data UI)</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font:800 28px var(--font-header);color:var(--purple-primary)">Panic name</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">Poppins 800 · 64px desktop / 38px mobile · forge-gradient fill</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font:700 20px var(--font-header);color:var(--purple-primary)">Drawer / rec name</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">Poppins 700 · 20–26px · purple-primary</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font:700 15px var(--font-header);color:var(--purple-primary)">Screen title</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">Poppins 700 · 15px · purple-primary</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font:500 12.5px var(--font-header);color:var(--text-primary)">Row title (player name)</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">Poppins 500 · 12.5px · text-primary</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font:400 12px var(--font-code);color:var(--text-primary)">240 data cell</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">JetBrains Mono 400 · 12px · 600 for emphasis</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font:600 10px var(--font-code);letter-spacing:.08em;color:var(--text-secondary)">MICRO LABEL</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">JetBrains Mono 600 · 9–10px · tracking +8%</span></div>
+        <div style="display:flex;align-items:baseline;gap:14px"><span style="font:italic 400 13px var(--font-body);color:var(--text-secondary)">Annotation / editorial aside</span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary)">Source Serif 4 italic · 11–13px · line-height 1.5</span></div>
+      </div>
+    </div>
+    <div style="border:1px solid var(--border);border-radius:8px;padding:14px 18px;background:var(--background)">
+      <div style="font:600 12px var(--font-code);color:var(--purple-primary);margin-bottom:10px">Spacing · radii · elevation</div>
+      <div style="font:400 11px/2 var(--font-code);color:var(--text-secondary)">
+        Spacing scale: 4 · 8 · 12 · 16 · 20 · 24 px (Tailwind steps)<br>
+        Radii: 4 (chips, cells) · 6 (segmented, alt chips) · 8 (cards, buttons) · 12 (screen frames) · full (capsules, tracks)<br>
+        Borders: always 1px — var(--border) neutral, purple-tint on branded cards, semantic-primary on alerts<br>
+        Row divider: rgba(51,65,85,.35) 1px<br>
+        Shadow: shadow-md on drawer only (−16px 0 32px rgba(0,0,0,.4)); cards are flat<br>
+        Motion: 200ms ease, color/background only — no entry animations, no bounces<br>
+        Density: board rows 29px tall (compact) · hit targets on mobile ≥ 44px
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Atoms" style="padding:28px 56px;max-width:1240px">
+  <div style="font:600 15px var(--font-header);color:var(--purple-primary);margin-bottom:12px">Atoms</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:14px">
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">PosChip</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Container + Text</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:8px;justify-content:center">
+        <span style="font:500 10px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 6px">QB</span>
+        <span style="font:500 10px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 6px">RB</span>
+        <span style="font:500 10px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 6px">WR</span>
+        <span style="font:500 10px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 6px">TE</span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">pad 1×6 · r4 · bg purple-tint · fg purple-primary · JBMono 500/10. One neutral chip for all positions — tier color carries meaning, position does not.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">TierBadge</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Container(border) + Text</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:8px;justify-content:center">
+        <span style="font:600 10px var(--font-code);color:#c495f4;border:1px solid #c495f4;border-radius:4px;padding:1px 5px">T1</span>
+        <span style="font:600 10px var(--font-code);color:#38bdf8;border:1px solid #38bdf8;border-radius:4px;padding:1px 5px">T2</span>
+        <span style="font:600 10px var(--font-code);color:#4ade80;border:1px solid #4ade80;border-radius:4px;padding:1px 5px">T3</span>
+        <span style="font:600 10px var(--font-code);color:#fbbf24;border:1px solid #fbbf24;border-radius:4px;padding:1px 5px">T4</span>
+        <span style="font:600 10px var(--font-code);color:#f87171;border:1px solid #f87171;border-radius:4px;padding:1px 5px">T5</span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">pad 1×5 · r4 · outline 1px tier color, transparent fill · JBMono 600/10. Tier palette is fixed T1–T5 (see foundations); same hex both themes.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">StatusFlag</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Container + Text</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <span style="font:500 9.5px var(--font-code);color:var(--warning-text);background:var(--warning-light);border-radius:4px;padding:1px 6px">SPLIT ±53</span>
+        <span style="font:600 9.5px var(--font-code);color:var(--error-text);background:var(--error-light);border-radius:4px;padding:1px 7px">Q</span>
+        <span style="font:600 9.5px var(--font-code);color:var(--error-text);background:var(--error-light);border-radius:4px;padding:1px 7px">OUT</span>
+        <span style="font:600 9px var(--font-code);color:var(--info-text);background:var(--info-light);border-radius:4px;padding:1px 6px">RUN</span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">pad 1×6–7 · r4 · semantic light bg + text fg. SPLIT = source disagreement ≥ 24 pts (warning) · injury (error) · positional run (info). Never forge-orange for state.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">FilterChip · SegmentedTabs</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">ChoiceChip / SegmentedButton</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;flex-direction:column;gap:12px;align-items:center">
+        <div style="display:flex;gap:4px">
+          <span style="font:600 11px var(--font-code);padding:4px 10px;border-radius:99px;color:var(--purple-primary);background:var(--purple-tint);border:1px solid var(--purple-primary)">ALL</span>
+          <span style="font:600 11px var(--font-code);padding:4px 10px;border-radius:99px;color:var(--text-secondary);border:1px solid var(--border)">QB</span>
+          <span style="font:600 11px var(--font-code);padding:4px 10px;border-radius:99px;color:var(--text-secondary);border:1px solid var(--border)">RB</span>
+        </div>
+        <div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <span style="font:500 11.5px var(--font-header);padding:5px 12px;color:var(--purple-primary);background:var(--purple-tint)">Ensemble</span>
+          <span style="font:500 11.5px var(--font-header);padding:5px 12px;color:var(--text-secondary)">Sleeper</span>
+          <span style="font:500 11.5px var(--font-header);padding:5px 12px;color:var(--text-secondary)">ForgeModel</span>
+        </div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Chip: capsule r-full, pad 4×10, active = tint bg + primary border/fg. Tabs: shared 1px border r6, active cell tint bg. Hover: fg → purple-primary, 200ms.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">Buttons</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">FilledButton / OutlinedButton</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:10px;justify-content:center;align-items:center">
+        <span style="font:600 14px var(--font-header);background:var(--purple-primary);color:#141327;padding:11px 22px;border-radius:8px">Draft him</span>
+        <span style="font:500 12px var(--font-header);color:var(--purple-primary);background:var(--purple-tint);border:1px solid var(--purple-primary);border-radius:8px;padding:6px 14px">Export tier sheet</span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Primary: purple-primary fill, ink #141327 on dark (white on light), pad 11×22 r8, Poppins 600/14; hover → purple-dark. Secondary: tint fill + 1px primary border, pad 6×14. No gradients on buttons.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">Toggle · ForgeSlider · LiveDot</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Switch / Slider</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:18px;justify-content:center;align-items:center">
+        <span style="width:30px;height:16px;border-radius:99px;background:var(--purple-primary);position:relative;display:inline-block"><span style="position:absolute;top:2px;left:16px;width:12px;height:12px;border-radius:99px;background:#fff"></span></span>
+        <input type="range" value="65" style="width:110px;accent-color:#f9a03f">
+        <span style="display:flex;align-items:center;gap:6px;font:400 11px var(--font-code);color:var(--text-secondary)"><span style="width:7px;height:7px;border-radius:99px;background:var(--success-primary)"></span>snapshots 04:12Z</span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Toggle: 30×16 track r-full, 12px knob, on = purple-primary. Slider: forge-orange thumb/track — ForgeModel knobs ONLY (its brand accent); generic sliders use purple. LiveDot: 7px success circle + JBMono 11 caption.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">DeltaText</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Text + color fn</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:16px;justify-content:center;font:600 12px var(--font-code)">
+        <span style="color:var(--success-primary)">+2.9</span>
+        <span style="color:var(--text-secondary)">−0.4</span>
+        <span style="color:var(--error-primary)">−22.4</span>
+        <span style="color:var(--success-primary)">▼1.7</span>
+        <span style="color:var(--error-primary)">▲0.8</span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">JBMono 500–600/11–12. Sign colors: good = success, bad = error, |Δ| ≤ 1 = text-secondary. Direction of "good" flips per context (ADP delta: + is value; MAE delta: ▼ is good) — encode in the widget, not the caller.</div>
+    </div>
+
+  </div>
+</section>
+
+<section data-screen-label="Molecules" style="padding:28px 56px;max-width:1240px">
+  <div style="font:600 15px var(--font-header);color:var(--purple-primary);margin-bottom:12px">Molecules</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:14px">
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">StatCard</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Card + Column</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;justify-content:center">
+        <div style="background:var(--background-light);border:1px solid var(--purple-tint);border-radius:8px;padding:10px 14px;min-width:180px">
+          <div style="font:600 9px var(--font-code);letter-spacing:.08em;color:var(--text-secondary)">RECORD</div>
+          <div style="font:700 21px var(--font-code);color:var(--purple-primary);margin-top:2px">5-3</div>
+          <div style="font:400 10.5px var(--font-code);color:var(--text-secondary)">3rd of 12 · won 3 of last 4</div>
+        </div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">pad 10×14 · r8 · 1px purple-tint border · flat (no resting shadow). Label JBMono 600/9 +8% tracking · value JBMono 700/21 purple · sub JBMono 400/10.5.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">AlertCard ×4</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Card, severity enum</span></div>
+      <div style="padding:14px;background:var(--background-light);display:flex;flex-direction:column;gap:6px">
+        <div style="background:var(--warning-light);border:1px solid var(--warning-primary);border-radius:8px;padding:8px 12px"><span style="font:600 11px var(--font-header);color:var(--warning-text)">Tier cliff — RB</span><span style="font:400 11px var(--font-body);color:var(--warning-text)"> · last tier-2 back on the board.</span></div>
+        <div style="background:var(--info-light);border:1px solid var(--info-primary);border-radius:8px;padding:8px 12px"><span style="font:600 11px var(--font-header);color:var(--info-text)">WR run</span><span style="font:400 11px var(--font-body);color:var(--info-text)"> · 3 of the last 5 picks are wideouts.</span></div>
+        <div style="background:var(--success-light);border:1px solid var(--success-primary);border-radius:8px;padding:8px 12px"><span style="font:600 11px var(--font-header);color:var(--success-text)">Value faller</span><span style="font:400 11px var(--font-body);color:var(--success-text)"> · 2.9 picks past ADP.</span></div>
+        <div style="background:var(--error-light);border:1px solid var(--error-primary);border-radius:8px;padding:8px 12px"><span style="font:600 11px var(--font-header);color:var(--error-text)">Injury watch</span><span style="font:400 11px var(--font-body);color:var(--error-text)"> · Q, calf — haircut already priced in.</span></div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">pad 9×12 · r8 · semantic light bg + primary border + text fg. Title Poppins 600/11, body Source Serif 400/11.5 lh 1.45. Mobile: collapses to a capsule chip (title only) in a horizontal scroll rail.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">SourceProjectionBar</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Row + FractionallySizedBox</span></div>
+      <div style="padding:16px 18px;background:var(--background-light);display:flex;flex-direction:column;gap:6px">
+        <div style="display:grid;grid-template-columns:78px 1fr 44px;align-items:center;gap:10px"><span style="font:500 10.5px var(--font-code);color:var(--text-secondary)">Sleeper</span><span style="height:10px;background:rgba(51,65,85,.5);border-radius:3px;overflow:hidden;display:block"><span style="display:block;height:100%;width:95%;background:#a05cf7"></span></span><span style="font:600 11.5px var(--font-code);color:var(--text-primary);text-align:right">284</span></div>
+        <div style="display:grid;grid-template-columns:78px 1fr 44px;align-items:center;gap:10px"><span style="font:500 10.5px var(--font-code);color:var(--text-secondary)">ESPN</span><span style="height:10px;background:rgba(51,65,85,.5);border-radius:3px;overflow:hidden;display:block"><span style="display:block;height:100%;width:87%;background:#38bdf8"></span></span><span style="font:600 11.5px var(--font-code);color:var(--text-primary);text-align:right">262</span></div>
+        <div style="display:grid;grid-template-columns:78px 1fr 44px;align-items:center;gap:10px"><span style="font:500 10.5px var(--font-code);color:var(--text-secondary)">ForgeModel</span><span style="height:10px;background:rgba(51,65,85,.5);border-radius:3px;overflow:hidden;display:block"><span style="display:block;height:100%;width:100%;background:#f9a03f"></span></span><span style="font:600 11.5px var(--font-code);color:var(--text-primary);text-align:right">301</span></div>
+        <div style="display:grid;grid-template-columns:78px 1fr 44px;align-items:center;gap:10px"><span style="font:500 10.5px var(--font-code);color:var(--text-secondary)">Ensemble</span><span style="height:10px;background:rgba(51,65,85,.5);border-radius:3px;overflow:hidden;display:block"><span style="display:block;height:100%;width:94%;background:#c495f4"></span></span><span style="font:600 11.5px var(--font-code);color:var(--text-primary);text-align:right">282</span></div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">cols 78 / flex / 44 · track 10px r3 rgba(#334155,.5) · fill = source color, width = value ÷ max(sources). Label JBMono 500/10.5 · value JBMono 600/11.5.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">Sparkline · RangeBand · SurvivalBar</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">CustomPaint</span></div>
+      <div style="padding:16px 18px;background:var(--background-light);display:flex;flex-direction:column;gap:14px">
+        <svg width="180" height="26" viewBox="0 0 150 26"><polyline points="3,18 20,10 37,20 54,6 71,12 88,23 105,8 122,14 139,4" fill="none" stroke="var(--purple-primary)" stroke-width="1.8"></polyline></svg>
+        <div style="height:12px;background:rgba(51,65,85,.5);border-radius:99px;position:relative;width:240px"><span style="position:absolute;top:0;bottom:0;left:28%;width:47%;border-radius:99px;background:var(--purple-tint)"></span><span style="position:absolute;top:-2px;left:48%;width:2px;height:16px;background:var(--purple-primary)"></span></div>
+        <div style="display:flex;align-items:center;gap:7px;width:240px"><span style="flex:1;height:5px;background:rgba(51,65,85,.5);border-radius:99px;overflow:hidden"><span style="display:block;height:100%;width:38%;background:var(--error-primary)"></span></span><span style="font:500 10.5px var(--font-code);color:var(--error-primary)">38%</span></div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Sparkline: 1.6–1.8px stroke, no dots/fill/axes. RangeBand: 12px r-full track, purple-tint band floor→ceiling, 2×16 median tick. SurvivalBar: 5px r-full; fill+label success ≥70 / warning 45–69 / error &lt;45.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">AvailabilityCell set</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Container 30×22 r4</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:4px;justify-content:center">
+        <span style="width:30px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:500 9px var(--font-code);background:var(--success-light);color:var(--success-text)">19</span>
+        <span style="width:30px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:500 9px var(--font-code);background:var(--warning-light);color:var(--warning-text)">12</span>
+        <span style="width:30px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:500 9px var(--font-code);background:var(--error-light);color:var(--error-text)">O</span>
+        <span style="width:30px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:500 9px var(--font-code);background:rgba(51,65,85,.45);color:var(--text-secondary)">B</span>
+        <span style="width:30px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:500 9px var(--font-code);border:1px solid rgba(51,65,85,.4);color:var(--text-secondary)"></span>
+        <span style="width:30px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;font:500 9px var(--font-code);background:var(--warning-light);color:var(--warning-text)">Q</span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">30×22 desktop · flex/14px mobile · r4 · JBMono 500/9. States: played (success + pts) · played-Q (warning + pts) · out (error "O") · bye (slate .45 "B") · upcoming (outline only, "Q" if flagged).</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">WeekBarColumn</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">GestureDetector + Column</span></div>
+      <div style="padding:14px;background:var(--background-light);display:flex;gap:8px;justify-content:center;align-items:flex-end">
+        <div style="width:52px;border-radius:6px;padding:6px 6px 8px"><div style="height:80px;display:flex;align-items:flex-end;gap:3px"><span style="flex:1;height:88%;background:var(--purple-tint);border-radius:3px 3px 0 0"></span><span style="flex:1;height:78%;background:var(--purple-primary);border-radius:3px 3px 0 0"></span></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span style="font:500 10px var(--font-code);color:var(--text-secondary)">W2</span><span style="font:600 9px var(--font-code);color:var(--error-text);background:var(--error-light);border-radius:4px;padding:1px 5px">L</span></div></div>
+        <div style="width:52px;border-radius:6px;padding:6px 6px 8px;background:rgba(196,149,244,.12)"><div style="height:80px;display:flex;align-items:flex-end;gap:3px"><span style="flex:1;height:90%;background:var(--purple-tint);border-radius:3px 3px 0 0"></span><span style="flex:1;height:96%;background:var(--purple-primary);border-radius:3px 3px 0 0"></span></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span style="font:500 10px var(--font-code);color:var(--text-secondary)">W8</span><span style="font:600 9px var(--font-code);color:var(--success-text);background:var(--success-light);border-radius:4px;padding:1px 5px">W</span></div></div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Two bars per week: projected (purple-tint) + actual (purple-primary), 3px gap, r3 top. Bar height = pts ÷ 140 scale. Selected column bg rgba(purple,.12) r6. W/L pill = semantic light/text.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">RosterSlotChip</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Container, filled|empty</span></div>
+      <div style="padding:18px 14px;background:var(--background-light);display:flex;gap:6px;justify-content:center">
+        <span style="display:flex;flex-direction:column;align-items:center;min-width:64px;padding:4px 8px;border-radius:6px;border:1px solid var(--purple-primary);background:var(--purple-tint)"><span style="font:600 8.5px var(--font-code);letter-spacing:.06em;color:var(--text-secondary)">WR</span><span style="font:500 10.5px var(--font-header);color:var(--text-primary)">A. St. Brown</span></span>
+        <span style="display:flex;flex-direction:column;align-items:center;min-width:64px;padding:4px 8px;border-radius:6px;border:1px dashed var(--border)"><span style="font:600 8.5px var(--font-code);letter-spacing:.06em;color:var(--text-secondary)">RB</span><span style="font:500 10.5px var(--font-header);color:var(--text-secondary)">—</span></span>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">min-w 64 · pad 4×8 · r6. Empty: 1px dashed border, "—" secondary. Filled: solid purple border + tint bg + name text-primary. Slot label JBMono 600/8.5 +6% tracking.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">RecommendationCard</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Card, idle|live|done</span></div>
+      <div style="padding:14px;background:var(--background-light)">
+        <div style="border:1px solid var(--forge-primary);background:var(--background-light);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+          <div style="flex:1">
+            <div style="font:600 9.5px var(--font-code);letter-spacing:.1em;color:var(--forge-primary)">THE PICK · SCORE 68.4</div>
+            <div style="font:700 22px/1.15 var(--font-header);color:var(--purple-primary)">Christian McCaffrey</div>
+            <div style="font:italic 400 12px/1.5 var(--font-body);color:var(--text-primary);margin-top:3px">38% he survives to your next pick. Tier-2 back at a tier-3 price.</div>
+          </div>
+          <span style="font:600 13px var(--font-header);background:var(--purple-primary);color:#141327;padding:10px 18px;border-radius:8px">Draft him</span>
+        </div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">States: idle (purple-tint border, no CTA) · live/my-turn (forge border + eyebrow, CTA visible) · done (success pill replaces CTA). Eyebrow JBMono 600/9.5 +10% · name Poppins 700/26 (21 mobile) · why Source Serif italic — always exactly one line of reasoning.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">TimerBlock · PanicOverlay</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Text + AnimatedContainer</span></div>
+      <div style="padding:14px;background:var(--background-light);display:flex;gap:14px;align-items:center;justify-content:center">
+        <div style="text-align:center"><div style="font:700 28px/1.1 var(--font-code);color:var(--error-primary)">22s</div><div style="width:110px;height:3px;background:rgba(51,65,85,.5);border-radius:99px;margin-top:4px"><span style="display:block;height:100%;width:24%;border-radius:99px;background:var(--error-primary)"></span></div></div>
+        <div style="flex:1;max-width:230px;background:rgba(11,16,29,.97);border-radius:8px;padding:16px 10px;text-align:center">
+          <div style="font:600 8px var(--font-code);letter-spacing:.22em;color:var(--error-primary)">22S · YOU ARE ON THE CLOCK</div>
+          <div style="font:800 22px/1.1 var(--font-header);background:var(--forge-gradient);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:6px">C. McCaffrey</div>
+        </div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Timer: JBMono 700/32 · fg text-primary &gt;20s → warning ≤20s → error ≤10s · 3px progress track. PanicOverlay: fires my-turn &amp; ≤30s; full-screen rgba(#0B101D,.97), name Poppins 800/64 in forge-gradient (its ONE sanctioned use beyond the logo), primary CTA below.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">BoardRow + TierBreak</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">DataTable row, 29px</span></div>
+      <div style="padding:14px 0;background:var(--background-light)">
+        <div style="display:flex;align-items:center;gap:10px;padding:0 16px 3px"><span style="font:600 10px var(--font-code);letter-spacing:.1em;color:#38bdf8">TIER 2</span><span style="flex:1;height:1px;background:var(--border)"></span><span style="font:400 10px var(--font-code);color:var(--text-secondary)">−12 pts off the last tier</span></div>
+        <div style="display:grid;grid-template-columns:34px 1fr 40px 50px 44px 48px 60px;align-items:center;padding:4px 16px;border-bottom:1px solid rgba(51,65,85,.35)">
+          <span style="font:400 11px var(--font-code);color:var(--text-secondary)">10</span>
+          <span style="display:flex;align-items:baseline;gap:8px"><span style="font:500 12.5px var(--font-header);color:var(--text-primary)">De'Von Achane</span><span style="font:400 10px var(--font-code);color:var(--text-secondary)">MIA · RB4</span></span>
+          <span><span style="font:500 10px var(--font-code);color:var(--purple-primary);background:var(--purple-tint);border-radius:4px;padding:1px 6px">RB</span></span>
+          <span style="font:600 12px var(--font-code);color:var(--text-primary);text-align:right">282</span>
+          <span style="font:600 12px var(--font-code);color:var(--purple-primary);text-align:right">83</span>
+          <span style="text-align:center"><span style="font:600 10px var(--font-code);color:#38bdf8;border:1px solid #38bdf8;border-radius:4px;padding:1px 5px">T2</span></span>
+          <span style="text-align:right;padding-right:2px"><span style="font:500 9.5px var(--font-code);color:var(--warning-text);background:var(--warning-light);border-radius:4px;padding:1px 6px">±39</span></span>
+        </div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Row 29px, pad 4×18, divider rgba(#334155,.35), hover bg rgba(purple,.07), whole row tappable → drawer. Numeric cells right-aligned JBMono. TierBreak: label + 1px rule + gap note; only rendered in ensemble sort. Sorted source column header → purple-primary.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">WeightStackBar</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">Row of Expanded</span></div>
+      <div style="padding:18px;background:var(--background-light);display:flex;flex-direction:column;gap:8px">
+        <div style="display:grid;grid-template-columns:36px 1fr 78px;gap:10px;align-items:center"><span style="font:600 11px var(--font-code);color:var(--text-primary)">RB</span><span style="display:flex;height:14px;border-radius:4px;overflow:hidden;background:rgba(51,65,85,.5)"><span style="display:block;background:#a05cf7;width:40%"></span><span style="display:block;background:#38bdf8;width:36%"></span><span style="display:block;background:#f9a03f;width:24%"></span></span><span style="font:400 9.5px var(--font-code);color:var(--text-secondary);text-align:right">40 / 36 / 24</span></div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">14px stacked bar r4 on rgba track · segments in source colors, widths = normalized weights · numeric split JBMono 9.5 right. Disabled state (overrides off): 45% opacity.</div>
+    </div>
+
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 14px;border-bottom:1px solid var(--border)"><span style="font:600 12px var(--font-code);color:var(--purple-primary)">TopNav · MobileTabBar</span><span style="font:400 9px var(--font-code);color:var(--text-secondary)">AppBar / NavigationBar</span></div>
+      <div style="padding:14px;background:var(--background-light);display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:2px;justify-content:center">
+          <span style="font:500 12.5px var(--font-header);color:var(--purple-primary);background:var(--purple-tint);border-radius:6px;padding:5px 11px">Big Board</span>
+          <span style="font:500 12.5px var(--font-header);color:var(--text-secondary);padding:5px 11px">Command Center</span>
+          <span style="font:500 12.5px var(--font-header);color:var(--text-secondary);padding:5px 11px">Waivers</span>
+        </div>
+        <div style="display:flex;justify-content:center;gap:26px">
+          <span style="display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--purple-primary)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"></path></svg><span style="font:500 9px var(--font-header)">Board</span></span>
+          <span style="display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path></svg><span style="font:500 9px var(--font-header)">Draft</span></span>
+          <span style="display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--text-secondary)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0v.75h-15v-.75z"></path></svg><span style="font:500 9px var(--font-header)">Team</span></span>
+        </div>
+      </div>
+      <div style="padding:9px 14px;font:400 9.5px/1.7 var(--font-code);color:var(--text-secondary)">Desktop: text pills Poppins 500/12.5, active = tint bg r6; header 45px, 1px bottom border, mark 22px. Mobile: bottom bar, Heroicons outline 21px 2px stroke, active purple-primary, labels Poppins 500/9. Icons always outline variant, currentColor.</div>
+    </div>
+
+  </div>
+</section>
+
+<section data-screen-label="Page anatomy" style="padding:28px 56px 64px;max-width:1240px">
+  <div style="font:600 15px var(--font-header);color:var(--purple-primary);margin-bottom:12px">Page anatomy</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;padding:14px">
+      <div style="font:600 12px var(--font-code);color:var(--purple-primary);margin-bottom:8px">Big Board</div>
+      <div style="border:1px dashed var(--border);border-radius:6px;height:170px;display:grid;grid-template-rows:22px 22px 1fr;grid-template-columns:1fr 88px;font:500 8.5px var(--font-code);color:var(--text-secondary)">
+        <div style="grid-column:1/3;border-bottom:1px dashed var(--border);display:flex;align-items:center;padding:0 8px">TopNav · league meta · LiveDot</div>
+        <div style="grid-column:1/3;border-bottom:1px dashed var(--border);display:flex;align-items:center;padding:0 8px">FilterChips · rank-by SegmentedTabs · export</div>
+        <div style="display:flex;align-items:center;justify-content:center">13-col table · TierBreaks · rows 29px</div>
+        <div style="border-left:1px dashed var(--border);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px">Player drawer 404px (overlay)</div>
+      </div>
+      <div style="font:400 9.5px/1.6 var(--font-code);color:var(--text-secondary);margin-top:8px">Mobile: 5-col condensed list (rank · tier+pos · name · ENS · VORP), drawer → 62% bottom sheet, r22 top, scrim rgba(#0B1120,.55).</div>
+    </div>
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;padding:14px">
+      <div style="font:600 12px var(--font-code);color:var(--purple-primary);margin-bottom:8px">Command Center</div>
+      <div style="border:1px dashed var(--border);border-radius:6px;height:170px;display:grid;grid-template-rows:26px 20px 1fr;grid-template-columns:1fr 80px;font:500 8.5px var(--font-code);color:var(--text-secondary)">
+        <div style="grid-column:1/3;border-bottom:1px dashed var(--border);display:flex;align-items:center;padding:0 8px">Pick · TimerBlock · picks-until-you</div>
+        <div style="grid-column:1/3;border-bottom:1px dashed var(--border);display:flex;align-items:center;padding:0 8px">RosterSlotChips ×10</div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px"><span>RecommendationCard</span><span>best-available + SurvivalBars</span></div>
+        <div style="border-left:1px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center;padding:4px"><span>Alert rail</span><span>PickTicker</span></div>
+      </div>
+      <div style="font:400 9.5px/1.6 var(--font-code);color:var(--text-secondary);margin-top:8px">Zero navigation. PanicOverlay covers everything at my-turn ≤30s. Mobile: alerts collapse to chip rail; ticker drops.</div>
+    </div>
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;padding:14px">
+      <div style="font:600 12px var(--font-code);color:var(--purple-primary);margin-bottom:8px">Tuning Garage</div>
+      <div style="border:1px dashed var(--border);border-radius:6px;height:170px;display:grid;grid-template-rows:22px 1fr;grid-template-columns:80px 100px 1fr;font:500 8.5px var(--font-code);color:var(--text-secondary)">
+        <div style="grid-column:1/4;border-bottom:1px dashed var(--border);display:flex;align-items:center;padding:0 8px">TopNav · weights version · endpoints</div>
+        <div style="border-right:1px dashed var(--border);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px">Knobs ×3 + Re-run CTA</div>
+        <div style="border-right:1px dashed var(--border);display:flex;align-items:center;justify-content:center;text-align:center;padding:4px">WeightStackBars + toggle</div>
+        <div style="display:flex;align-items:center;justify-content:center;text-align:center;padding:4px">MAE scoreboard + Δ RUN</div>
+      </div>
+      <div style="font:400 9.5px/1.6 var(--font-code);color:var(--text-secondary);margin-top:8px">Cause → effect, left to right: 330 / 430 / flex columns. Mobile: stacked, scoreboard condensed to ENS + Δ per position.</div>
+    </div>
+    <div style="background:var(--background);border:1px solid var(--border);border-radius:8px;padding:14px">
+      <div style="font:600 12px var(--font-code);color:var(--purple-primary);margin-bottom:8px">Season Monitor</div>
+      <div style="border:1px dashed var(--border);border-radius:6px;height:170px;display:grid;grid-template-rows:22px 30px 1fr 44px;font:500 8.5px var(--font-code);color:var(--text-secondary)">
+        <div style="border-bottom:1px dashed var(--border);display:flex;align-items:center;padding:0 8px">TopNav · team · week</div>
+        <div style="border-bottom:1px dashed var(--border);display:flex;align-items:center;padding:0 8px">StatCards ×4</div>
+        <div style="border-bottom:1px dashed var(--border);display:flex;align-items:center;justify-content:center">WeekBarColumns ×8 → box-score card (300px right)</div>
+        <div style="display:flex;align-items:center;justify-content:center">Starters matrix: AvailabilityCells ×14 + Sparkline + Δ</div>
+      </div>
+      <div style="font:400 9.5px/1.6 var(--font-code);color:var(--text-secondary);margin-top:8px">Same payload feeds the Sunday digest email. Mobile: 2×2 stats, chart + inline box score, per-player strips.</div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>
