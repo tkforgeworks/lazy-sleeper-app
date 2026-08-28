@@ -1,0 +1,21 @@
+# Consumes the org standard Flutter CI (tkforgeworks/.github). Runs
+# `flutter pub get`, `dart format --set-exit-if-changed`, `flutter analyze`,
+# `flutter test`. Platform builds belong to a release workflow, not here.
+#
+# The resulting check is named "ci / ci" (caller job / reusable job); that is
+# the context to require in the branch ruleset once it has reported once.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: tkforgeworks/.github/.github/workflows/ci-flutter.yml@main
+    with:
+      flutter-version: '3.47.2'
