@@ -55,9 +55,15 @@ never reimplements logic. Keep this file in sync as decisions land.
 
 ## Working conventions
 
-- All changes land via PR to `main` (direct push is rejected). Branch from `main` (`LS-N-...`), open PR,
-  merge (self-merge allowed — 0 required approvals). Commit subjects `LS-N: ...`, imperative, `Fix ...` for
-  bug fixes (they become release-note lines).
+- **Version-branch flow** (org standard, adopted 2026-08-28 after PR #1 went straight to `main`):
+  `main` is the released state and only receives release PRs. Work happens on the current release
+  branch `vX.Y.Z/main` (now **`v0.1.0/main`**, matching the unreleased `pubspec.yaml` version). Topic
+  branches are `vX.Y.Z/LS-N-topic` off the release branch; PR into the release branch; self-merge allowed
+  (0 required approvals). Never open a work PR against `main`. Release branches are unprotected today (org
+  decision pending — see the handoff in `tkforgeworks/.github`), so check CI is green before merging.
+  No release workflow or version-bump scripts yet: the org's are npm/Electron-only; a Flutter release
+  pipeline is on the org handoff list, and this repo adopts it when it exists.
+- Commit subjects `LS-N: ...`, imperative, `Fix ...` for bug fixes (they become release-note lines).
 - CI contract from repo root: `dart format --output=none --set-exit-if-changed .`, `flutter analyze`,
   `flutter test`. `dart format` ignores analyzer excludes, so `.dart` files under `docs/` must stay
   formatted too.
