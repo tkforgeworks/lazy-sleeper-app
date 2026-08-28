@@ -7,14 +7,22 @@ never reimplements logic. Keep this file in sync as decisions land.
 ## Repo state (2026-08-28)
 
 - Flutter app exists (LS-39 increment 1): scaffold, theme, API client, Big Board screen, API-address
-  setting, and a first Draft screen that drives the backend draft runner (`GET /draft`,
-  `POST /draft/{id}/start|stop`; the draft id is remembered in prefs). Increment 2 (the live companion
-  view polling `/draft/{id}/state`) is next, under the same ticket.
-- Backend `lazy serve` runs on port **8000**; `/board` and `/draft/{id}/state` exist (v0.1.0). `/board`
+  setting, and a Draft screen that drives the backend draft runner (`GET /draft`,
+  `POST /draft/{id}/start|stop`; the draft id is remembered in prefs). Increment 2 (live companion view)
+  is landing in slices under the same ticket: **2a** = `/draft/{id}/state` models (`lib/api/models/
+  draft_state.dart`), `draftLiveProvider` (polls every 2 s, swaps `DraftLive.state` only when
+  `recompute.seq` moves, 404 → `notRunning`, other failures keep the last good state), and a LIVE STATE
+  strip on the Draft screen; **2b** = the Command Center layout (header, roster chips, best-available
+  table, pick ticker); **2c** = pick clock ticking from `clock.pick_deadline`, RecommendationCard live
+  state, panic highlight, alert cards. Fixtures for every phase live in `assets/fixtures/draft_state_*.json`
+  (`FixtureLazySleeperApi.draftState*`), captured from mocks on 2026-08-28. Sleeper delivers mock CPU picks
+  out of order (`picks_made` 3 with `current_pick` 7) — render from `current_pick`/`on_the_clock` only.
+- Backend `lazy serve` runs on port **8000**, v0.1.2: LS-56 (`pick_deadline`, `on_the_clock_team_name`,
+  `recent_picks`) and the LS-69/70 hang fixes are in. `/board`
   rows are untyped in its OpenAPI until LS-55, so `lib/api/models/board.dart` is transcribed by hand from
-  `lazy-sleeper/docs/api/GUIDE.md`. Backend gap tickets LS-56..61 are filed; LS-56 (pick clock, on-the-clock
-  team, recent picks) is the only draft-night blocker. Draft night: Fri 2026-09-04; the backend's
-  `/draft.html` is the guaranteed fallback.
+  `lazy-sleeper/docs/api/GUIDE.md`; `/state` is typed (`DraftStateOut`) and `draft_state.dart` mirrors it.
+  Remaining backend gaps: LS-57..61 (none block draft night). Draft night: Fri 2026-09-04; the backend's
+  `/draft.html` is the guaranteed fallback. `startDraft` uses a 60 s receive timeout (pre-draft load).
 - `main` is protected by the org ruleset (PR-only, no bypass). CI (`.github/workflows/ci.yml`) consumes
   the org reusable `ci-flutter.yml`; the check **`ci / ci`** is required by the ruleset (strict, added
   2026-08-28 after its first green run on PR #1). Note: the GitHub ruleset update endpoint is `PUT`, not

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import 'models/board.dart';
 import 'models/draft.dart';
+import 'models/draft_state.dart';
 
 /// The lazy-sleeper FastAPI contract, as much of it as the app consumes.
 ///
@@ -27,7 +28,16 @@ abstract interface class LazySleeperApi {
 
   /// `POST /draft/{id}/stop`: stop polling. 404 when it is not running.
   Future<DraftStopOut> stopDraft(String draftId);
+
+  /// `GET /draft/{id}/state`: the draft-night payload. 404 when the runner
+  /// is not up. [position] filters server-side (`rank` stays overall);
+  /// [limit] truncates the rows.
+  Future<DraftState> draftState(String draftId, {String? position, int? limit});
 }
+
+/// The pre-draft load behind `start` can take a while on a cold backend;
+/// the GUIDE asks for about a minute.
+const startDraftTimeout = Duration(seconds: 60);
 
 /// Anything that stopped a call from producing a parsed response: transport
 /// failure, non-2xx status, or a body the models could not read.
@@ -83,6 +93,7 @@ class HttpLazySleeperApi implements LazySleeperApi {
         'POST',
         '/draft/$draftId/start',
         data: {'season': season},
+        receiveTimeout: startDraftTimeout,
         parse: (body) => DraftStartOut.fromJson(body as Map<String, dynamic>),
       );
 
@@ -93,11 +104,24 @@ class HttpLazySleeperApi implements LazySleeperApi {
     parse: (body) => DraftStopOut.fromJson(body as Map<String, dynamic>),
   );
 
+  @override
+  Future<DraftState> draftState(
+    String draftId, {
+    String? position,
+    int? limit,
+  }) => _request(
+    'GET',
+    '/draft/$draftId/state',
+    query: {'position': position, 'limit': limit},
+    parse: (body) => DraftState.fromJson(body as Map<String, dynamic>),
+  );
+
   Future<T> _request<T>(
     String method,
     String path, {
     Map<String, Object?> query = const {},
     Object? data,
+    Duration? receiveTimeout,
     required T Function(Object body) parse,
   }) async {
     final Response<Object> response;
@@ -109,7 +133,7 @@ class HttpLazySleeperApi implements LazySleeperApi {
           for (final e in query.entries)
             if (e.value != null) e.key: e.value,
         },
-        options: Options(method: method),
+        options: Options(method: method, receiveTimeout: receiveTimeout),
       );
     } on DioException catch (e) {
       final status = e.response?.statusCode;
