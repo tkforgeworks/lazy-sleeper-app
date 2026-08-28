@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lazy_sleeper_app/api/fixture_api.dart';
 import 'package:lazy_sleeper_app/api/lazy_sleeper_api.dart';
+import 'package:lazy_sleeper_app/api/models/board.dart';
+import 'package:lazy_sleeper_app/api/models/draft.dart';
 import 'package:lazy_sleeper_app/api/providers.dart';
 import 'package:lazy_sleeper_app/app/app.dart';
 import 'package:lazy_sleeper_app/app/prefs.dart';
@@ -23,6 +25,52 @@ class RepoBundle extends CachingAssetBundle {
   Future<ByteData> load(String key) =>
       SynchronousFuture(ByteData.sublistView(File(key).readAsBytesSync()));
 }
+
+/// A [LazySleeperApi] whose every call is a swappable callback; defaults to
+/// the bundled fixture for the board and an idle draft runner. Assign a
+/// callback that throws [ApiException] to simulate failures.
+class FakeLazySleeperApi implements LazySleeperApi {
+  FakeLazySleeperApi({this.onBoard, this.onDrafts, this.onStart, this.onStop});
+
+  final _fixture = FixtureLazySleeperApi(bundle: RepoBundle());
+  Future<BoardResponse> Function()? onBoard;
+  Future<List<DraftSummary>> Function()? onDrafts;
+  Future<DraftStartOut> Function(String id, int season)? onStart;
+  Future<DraftStopOut> Function(String id)? onStop;
+
+  @override
+  Future<BoardResponse> board({
+    int? season,
+    String? provider,
+    String? position,
+    int? limit,
+  }) =>
+      onBoard?.call() ??
+      _fixture.board(
+        season: season,
+        provider: provider,
+        position: position,
+        limit: limit,
+      );
+
+  @override
+  Future<List<DraftSummary>> drafts() => onDrafts?.call() ?? _fixture.drafts();
+
+  @override
+  Future<DraftStartOut> startDraft(String draftId, {int season = 2026}) =>
+      onStart?.call(draftId, season) ??
+      _fixture.startDraft(draftId, season: season);
+
+  @override
+  Future<DraftStopOut> stopDraft(String draftId) =>
+      onStop?.call(draftId) ?? _fixture.stopDraft(draftId);
+}
+
+/// An API whose board fetch fails as if the server were unreachable.
+FakeLazySleeperApi downApi() => FakeLazySleeperApi(
+  onBoard: () async =>
+      throw const ApiException('Could not reach the API: refused'),
+);
 
 /// The app on bundled fixture data (or [api]) at a given viewport, with an
 /// in-memory preferences store seeded from [prefs].
@@ -41,10 +89,7 @@ Future<SharedPreferences> pumpApp(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(store),
-        if (api != null || !lsFakeData)
-          lazySleeperApiProvider.overrideWithValue(
-            api ?? FixtureLazySleeperApi(bundle: RepoBundle()),
-          ),
+        lazySleeperApiProvider.overrideWithValue(api ?? FakeLazySleeperApi()),
       ],
       child: const LazySleeperApp(),
     ),
