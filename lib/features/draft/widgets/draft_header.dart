@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../api/models/draft_state.dart';
 import '../../../app/theme/ls_theme.dart';
 import '../../../app/widgets/atoms.dart';
+import '../draft_live_providers.dart';
 import '../draft_view.dart';
 
 /// Command Center header: pick label, on-the-clock team with the timer
@@ -159,23 +160,26 @@ class UntilYouBox extends StatelessWidget {
 }
 
 /// Poll health for the header: green while polls succeed, red when the
-/// last one failed (the state shown is the last good one), amber when the
-/// backend says its recompute is stale.
+/// last one failed (the state shown is the last good one), grey when the
+/// runner is stopped and polling has paused, amber when the backend says
+/// its recompute is stale.
 class PollHealthDot extends StatelessWidget {
-  const PollHealthDot({
-    super.key,
-    required this.state,
-    required this.pollFailed,
-  });
+  const PollHealthDot({super.key, required this.state, required this.phase});
 
   final DraftState state;
-  final bool pollFailed;
+  final DraftLivePhase phase;
 
   @override
   Widget build(BuildContext context) {
     final ls = context.ls;
-    if (pollFailed) {
+    if (phase == DraftLivePhase.error) {
       return LiveDot(color: ls.errorPrimary, label: 'poll failed');
+    }
+    if (phase == DraftLivePhase.stopped || phase == DraftLivePhase.notRunning) {
+      return LiveDot(
+        color: ls.textSecondary,
+        label: state.clock.complete ? 'complete' : 'runner stopped',
+      );
     }
     if (state.recompute.stale || state.recompute.error != null) {
       return LiveDot(color: ls.warningPrimary, label: 'stale advice');
