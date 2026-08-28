@@ -387,3 +387,150 @@ class SourceProjectionBar extends StatelessWidget {
     );
   }
 }
+
+/// Track 5 r-full; fill and the % label share a tone: success ≥ 70,
+/// warning 45–69, error < 45. Label JBM 500/10.5, right, 32 wide.
+class SurvivalBar extends StatelessWidget {
+  const SurvivalBar({super.key, required this.survival});
+
+  /// 0–1; null draws an empty track and a dash.
+  final double? survival;
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    final s = survival;
+    final color = s == null
+        ? ls.textSecondary
+        : s >= 0.70
+        ? ls.successPrimary
+        : s >= 0.45
+        ? ls.warningPrimary
+        : ls.errorPrimary;
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 5,
+            decoration: BoxDecoration(
+              color: ls.track,
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: (s ?? 0).clamp(0, 1).toDouble(),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 7),
+        SizedBox(
+          width: 32,
+          child: Text(
+            s == null ? '—' : '${(s * 100).round()}%',
+            textAlign: TextAlign.right,
+            style: LsText.caption.copyWith(
+              fontWeight: FontWeight.w500,
+              fontVariations: const [FontVariation('wght', 500)],
+              color: color,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// minW 64, pad 4×8, r6. Empty: 1px dashed border, dash in secondary.
+/// Filled: 1px purplePrimary + purpleTint bg, name Pop 500/10.5.
+/// Slot label JBM 600/8.5 +6% above.
+class RosterSlotChip extends StatelessWidget {
+  const RosterSlotChip({super.key, required this.label, this.player});
+
+  final String label;
+  final String? player;
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    final filled = player != null;
+    final body = Container(
+      constraints: const BoxConstraints(minWidth: 64),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: filled
+          ? BoxDecoration(
+              color: ls.purpleTint,
+              border: Border.all(color: ls.purplePrimary),
+              borderRadius: BorderRadius.circular(LsRadius.segment),
+            )
+          : null,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: LsText.microLabel.copyWith(
+              fontSize: 8.5,
+              letterSpacing: 0.5,
+              color: ls.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            player ?? '—',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: LsText.rowTitle.copyWith(
+              fontSize: 10.5,
+              color: filled ? ls.textPrimary : ls.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (filled) return body;
+    return CustomPaint(
+      painter: _DashedBorder(color: ls.border, radius: LsRadius.segment),
+      child: body,
+    );
+  }
+}
+
+/// 1px dashed rounded rectangle, 4 on / 3 off.
+class _DashedBorder extends CustomPainter {
+  const _DashedBorder({required this.color, required this.radius});
+
+  final Color color;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Offset.zero & size,
+          Radius.circular(radius),
+        ).deflate(0.5),
+      );
+    for (final metric in path.computeMetrics()) {
+      var d = 0.0;
+      while (d < metric.length) {
+        canvas.drawPath(metric.extractPath(d, d + 4), paint);
+        d += 7;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorder old) =>
+      old.color != color || old.radius != radius;
+}
