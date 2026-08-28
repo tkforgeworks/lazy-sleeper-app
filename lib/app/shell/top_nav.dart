@@ -99,13 +99,10 @@ class _NavPillState extends State<NavPill> {
         child: AnimatedContainer(
           duration: lsDuration,
           curve: lsCurve,
-          padding: const EdgeInsets.symmetric(
-            horizontal: LsSpacing.md,
-            vertical: LsSpacing.xs,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
           decoration: BoxDecoration(
             color: widget.selected ? ls.purpleTint : Colors.transparent,
-            borderRadius: BorderRadius.circular(LsRadius.full),
+            borderRadius: BorderRadius.circular(LsRadius.segment),
           ),
           child: AnimatedDefaultTextStyle(
             duration: lsDuration,
