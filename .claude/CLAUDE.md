@@ -12,8 +12,10 @@ never reimplements logic. Keep this file in sync as decisions land.
   is landing in slices under the same ticket: **2a** = `/draft/{id}/state` models (`lib/api/models/
   draft_state.dart`), `draftLiveProvider` (polls every 2 s, swaps `DraftLive.state` only when
   `recompute.seq` moves, 404 → `notRunning`, other failures keep the last good state), and a LIVE STATE
-  strip on the Draft screen; **2b** = the Command Center layout (header, roster chips, best-available
-  table, pick ticker); **2c** = pick clock ticking from `clock.pick_deadline`, RecommendationCard live
+  strip on the Draft screen; **2b** = the Command Center layout (`lib/features/draft/widgets/`: header with
+  until-you box, roster strip, best-available table/list, pick ticker; runner controls move to a dialog behind
+  the header's `runner` button once `/state` has answered; `draft_view.dart` holds the pure label/seat
+  helpers); **2c** = pick clock ticking from `clock.pick_deadline`, RecommendationCard live
   state, panic highlight, alert cards. Fixtures for every phase live in `assets/fixtures/draft_state_*.json`
   (`FixtureLazySleeperApi.draftState*`), captured from mocks on 2026-08-28. Sleeper delivers mock CPU picks
   out of order (`picks_made` 3 with `current_pick` 7) — render from `current_pick`/`on_the_clock` only.

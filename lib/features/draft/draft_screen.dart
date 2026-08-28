@@ -1,60 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../api/models/draft.dart';
+import '../../api/models/draft_state.dart';
 import '../../app/theme/ls_theme.dart';
 import '../../app/widgets/atoms.dart';
 import 'draft_live_providers.dart';
-import 'draft_runner_providers.dart';
+import 'widgets/best_available.dart';
+import 'widgets/draft_header.dart';
+import 'widgets/draft_runner_card.dart';
+import 'widgets/pick_ticker.dart';
+import 'widgets/roster_strip.dart';
 
-/// Draft Command Center, first slice: control the backend's draft runner
-/// from the app instead of curl. The live view over `/draft/{id}/state`
-/// lands in increment 2.
-class DraftScreen extends ConsumerStatefulWidget {
+/// Draft Command Center: everything glanceable on draft night, zero
+/// navigation. Read-only — picks are made in the Sleeper app.
+///
+/// Until `/state` has answered for the remembered id, the screen is the
+/// runner setup (id + start). Once there is a state it stays on screen;
+/// poll failures only change the health dot. The runner controls move to
+/// a dialog behind the header's `runner` button.
+class DraftScreen extends ConsumerWidget {
   const DraftScreen({super.key});
 
   @override
-  ConsumerState<DraftScreen> createState() => _DraftScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final live = ref.watch(draftLiveProvider);
+    final state = live.state;
+    if (state == null) return _Setup(live: live);
+    final pollFailed = live.phase == DraftLivePhase.error;
+    return context.isDesktop
+        ? _Desktop(state: state, pollFailed: pollFailed, error: live.error)
+        : _Mobile(state: state, pollFailed: pollFailed, error: live.error);
+  }
 }
 
-class _DraftScreenState extends ConsumerState<DraftScreen> {
-  late final TextEditingController _id;
+class _Setup extends StatelessWidget {
+  const _Setup({required this.live});
 
-  @override
-  void initState() {
-    super.initState();
-    _id = TextEditingController(text: ref.read(draftIdProvider));
-  }
-
-  @override
-  void dispose() {
-    _id.dispose();
-    super.dispose();
-  }
-
-  Future<void> _start() async {
-    final id = _id.text.trim();
-    if (id.isEmpty) return;
-    await ref.read(draftIdProvider.notifier).set(id);
-    await ref.read(draftRunnerProvider.notifier).start(id);
-    // The poller would catch up on its next tick; no need to wait for it.
-    await ref.read(draftLiveProvider.notifier).refresh();
-  }
-
-  Future<void> _stop() async {
-    final id = _id.text.trim();
-    if (id.isEmpty) return;
-    await ref.read(draftIdProvider.notifier).set(id);
-    await ref.read(draftRunnerProvider.notifier).stop(id);
-  }
+  final DraftLive live;
 
   @override
   Widget build(BuildContext context) {
     final ls = context.ls;
-    final runner = ref.watch(draftRunnerProvider);
-    final known = ref.watch(knownDraftsProvider);
-    final busy = runner.isLoading;
-
+    final hint = switch (live.phase) {
+      DraftLivePhase.idle => 'Give it a draft id and start the runner.',
+      DraftLivePhase.connecting => 'Polling /state…',
+      DraftLivePhase.notRunning => 'Runner not up for this id. Start it below.',
+      DraftLivePhase.error =>
+        'Could not reach /state: ${live.error ?? 'unknown error'}',
+      DraftLivePhase.live => '',
+    };
     return SingleChildScrollView(
       padding: EdgeInsets.all(context.isDesktop ? 24 : LsSpacing.md),
       child: Align(
@@ -70,297 +64,190 @@ class _DraftScreenState extends ConsumerState<DraftScreen> {
               ),
               const SizedBox(height: LsSpacing.xs),
               Text(
-                'The live view arrives with increment 2. Until then: the runner, '
-                'without the curl.',
+                'Zero navigation once the runner is up. Picks are still made '
+                'in Sleeper; this screen only tells you which one.',
                 style: LsText.aside.copyWith(color: ls.textSecondary),
               ),
+              const SizedBox(height: LsSpacing.sm),
+              LiveDot(
+                color: switch (live.phase) {
+                  DraftLivePhase.error => ls.errorPrimary,
+                  DraftLivePhase.connecting => ls.warningPrimary,
+                  _ => ls.textSecondary,
+                },
+                label: hint,
+              ),
               const SizedBox(height: LsSpacing.xl),
-              _Card(
-                title: 'DRAFT RUNNER',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sleeper draft id, from the room URL '
-                      '(sleeper.com/draft/nfl/<id>). Start before the room '
-                      'opens: the pre-draft load takes a few seconds.',
-                      style: LsText.aside.copyWith(color: ls.textSecondary),
-                    ),
-                    const SizedBox(height: LsSpacing.md),
-                    TextField(
-                      controller: _id,
-                      enabled: !busy,
-                      keyboardType: TextInputType.number,
-                      style: LsText.dataCell.copyWith(color: ls.textPrimary),
-                      decoration: _input(ls, 'draft id'),
-                      onSubmitted: (_) => _start(),
-                    ),
-                    const SizedBox(height: LsSpacing.md),
-                    Row(
-                      children: [
-                        PrimaryButton(
-                          label: 'Start runner',
-                          onPressed: busy ? null : _start,
-                        ),
-                        const SizedBox(width: LsSpacing.sm),
-                        SecondaryButton(
-                          label: 'Stop',
-                          onPressed: busy ? null : _stop,
-                        ),
-                        const SizedBox(width: LsSpacing.md),
-                        if (busy)
-                          Text(
-                            'Talking to the API…',
-                            style: LsText.caption.copyWith(
-                              color: ls.textSecondary,
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (runner.value case final outcome?) ...[
-                      const SizedBox(height: LsSpacing.md),
-                      _Outcome(outcome),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: LsSpacing.lg),
-              const _Card(title: 'LIVE STATE', child: _LiveStrip()),
-              const SizedBox(height: LsSpacing.lg),
-              _Card(
-                title: 'KNOWN TO THE API',
-                child: known.when(
-                  loading: () => Text(
-                    'Asking…',
-                    style: LsText.caption.copyWith(color: ls.textSecondary),
-                  ),
-                  error: (e, _) => Text(
-                    'Could not list drafts: $e',
-                    style: LsText.caption.copyWith(color: ls.errorText),
-                  ),
-                  data: (drafts) => drafts.isEmpty
-                      ? Text(
-                          'None yet. The API forgets on restart; start one above.',
-                          style: LsText.aside.copyWith(color: ls.textSecondary),
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final d in drafts)
-                              _KnownDraft(
-                                draft: d,
-                                onTap: () =>
-                                    setState(() => _id.text = d.draftId),
-                              ),
-                          ],
-                        ),
-                ),
-              ),
+              const DraftRunnerPanel(),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  InputDecoration _input(LsColors ls, String hint) => InputDecoration(
-    hintText: hint,
-    hintStyle: LsText.dataCell.copyWith(color: ls.textSecondary),
-    isDense: true,
-    border: OutlineInputBorder(
-      borderSide: BorderSide(color: ls.border),
-      borderRadius: BorderRadius.circular(LsRadius.card),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: ls.border),
-      borderRadius: BorderRadius.circular(LsRadius.card),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: ls.purplePrimary),
-      borderRadius: BorderRadius.circular(LsRadius.card),
-    ),
+class _HeaderTrailing extends StatelessWidget {
+  const _HeaderTrailing({required this.state, required this.pollFailed});
+
+  final DraftState state;
+  final bool pollFailed;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      PollHealthDot(state: state, pollFailed: pollFailed),
+      const SizedBox(width: LsSpacing.sm),
+      TextButton(
+        onPressed: () => showRunnerDialog(context),
+        style: TextButton.styleFrom(
+          minimumSize: Size.zero,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: Text(
+          'runner',
+          style: LsText.caption.copyWith(color: context.ls.purplePrimary),
+        ),
+      ),
+    ],
   );
 }
 
-class _Card extends StatelessWidget {
-  const _Card({required this.title, required this.child});
+/// One line under the header when the advice should be read with care.
+class _Notice extends StatelessWidget {
+  const _Notice({required this.state, required this.error});
 
-  final String title;
-  final Widget child;
+  final DraftState state;
+  final String? error;
 
   @override
   Widget build(BuildContext context) {
     final ls = context.ls;
+    final text = error != null
+        ? 'Last poll failed ($error). Showing the last good state.'
+        : state.recompute.error != null || state.recompute.stale
+        ? 'Advice is from before the latest pick: '
+              '${state.recompute.error ?? 'recompute stale'}.'
+        : state.poller.runnerError != null
+        ? 'Runner stopped: ${state.poller.runnerError}.'
+        : null;
+    if (text == null) return const SizedBox.shrink();
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: ls.backgroundLight,
-        border: Border.all(color: ls.border),
-        borderRadius: BorderRadius.circular(LsRadius.card),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: LsText.microLabel.copyWith(color: ls.textSecondary),
-          ),
-          const SizedBox(height: LsSpacing.sm),
-          child,
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      color: ls.warningLight,
+      child: Text(text, style: LsText.caption.copyWith(color: ls.warningText)),
     );
   }
 }
 
-class _Outcome extends StatelessWidget {
-  const _Outcome(this.outcome);
+class _Desktop extends StatelessWidget {
+  const _Desktop({
+    required this.state,
+    required this.pollFailed,
+    required this.error,
+  });
 
-  final RunnerOutcome outcome;
-
-  @override
-  Widget build(BuildContext context) {
-    final ls = context.ls;
-    switch (outcome) {
-      case RunnerStarted(:final result):
-        final r = result;
-        final slot = r.mySlot == null
-            ? 'slot not assigned yet'
-            : 'slot ${r.mySlot}';
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            LiveDot(
-              color: r.running ? ls.successPrimary : ls.errorPrimary,
-              label: r.alreadyRunning
-                  ? 'Runner was already up for ${r.draftId}'
-                  : 'Runner up for ${r.draftId}',
-            ),
-            const SizedBox(height: LsSpacing.xs),
-            Text(
-              'Season ${r.season} · $slot · ${r.picksMade} picks made · '
-              '${r.boardRows} board rows',
-              style: LsText.caption.copyWith(color: ls.textSecondary),
-            ),
-            if (r.mySlot == null) ...[
-              const SizedBox(height: LsSpacing.xs),
-              Text(
-                'Sleeper assigns draft_order late on mocks; the runner picks it '
-                'up mid-draft, or set MY_DRAFT_SLOT in the backend .env.',
-                style: LsText.aside.copyWith(color: ls.textSecondary),
-              ),
-            ],
-          ],
-        );
-      case RunnerStopped(:final result):
-        return LiveDot(
-          color: ls.textSecondary,
-          label: 'Runner stopped for ${result.draftId}',
-        );
-      case RunnerFailed(:final message):
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const StatusFlag('FAILED', severity: FlagSeverity.error),
-            const SizedBox(width: LsSpacing.sm),
-            Expanded(
-              child: Text(
-                message,
-                style: LsText.caption.copyWith(color: ls.errorText),
-              ),
-            ),
-          ],
-        );
-    }
-  }
-}
-
-/// First slice of the live view: proves the `/state` poll is up and what
-/// it last said. The full Command Center replaces this card.
-class _LiveStrip extends ConsumerWidget {
-  const _LiveStrip();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ls = context.ls;
-    final live = ref.watch(draftLiveProvider);
-    final caption = LsText.caption.copyWith(color: ls.textSecondary);
-    switch (live.phase) {
-      case DraftLivePhase.idle:
-        return Text('No draft id yet.', style: caption);
-      case DraftLivePhase.connecting:
-        return LiveDot(color: ls.warningPrimary, label: 'Polling /state…');
-      case DraftLivePhase.notRunning:
-        return LiveDot(
-          color: ls.textSecondary,
-          label: 'Runner not up for this id. Start it above.',
-        );
-      case DraftLivePhase.live || DraftLivePhase.error:
-        final s = live.state;
-        final clock = s?.clock;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            LiveDot(
-              color: live.phase == DraftLivePhase.live
-                  ? ls.successPrimary
-                  : ls.errorPrimary,
-              label: live.phase == DraftLivePhase.live
-                  ? 'Live · ${s?.poller.status ?? '—'}'
-                  : 'Poll failed; showing the last good state',
-            ),
-            if (clock != null) ...[
-              const SizedBox(height: LsSpacing.xs),
-              Text(
-                'Pick ${clock.currentPick}'
-                '${clock.round == null ? '' : ' · round ${clock.round}'}'
-                ' · on the clock: '
-                '${clock.onTheClockTeamName ?? 'slot ${clock.onTheClock ?? '—'}'}'
-                ' · ${clock.myTurn ? 'YOUR TURN' : '${clock.picksUntilMyTurn ?? '—'} until you'}'
-                ' · ${s!.rows.length} rows · seq ${s.recompute.seq}',
-                style: caption,
-              ),
-            ],
-            if (live.error case final error?) ...[
-              const SizedBox(height: LsSpacing.xs),
-              Text(error, style: LsText.caption.copyWith(color: ls.errorText)),
-            ],
-          ],
-        );
-    }
-  }
-}
-
-class _KnownDraft extends StatelessWidget {
-  const _KnownDraft({required this.draft, required this.onTap});
-
-  final DraftSummary draft;
-  final VoidCallback onTap;
+  final DraftState state;
+  final bool pollFailed;
+  final String? error;
 
   @override
   Widget build(BuildContext context) {
     final ls = context.ls;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            LiveDot(
-              color: draft.running ? ls.successPrimary : ls.textSecondary,
-              label: draft.draftId,
-            ),
-            const Spacer(),
-            Text(
-              draft.running
-                  ? 'running · ${draft.season ?? '—'}'
-                  : 'stopped · ${draft.season ?? '—'}',
-              style: LsText.caption.copyWith(color: ls.textSecondary),
-            ),
-          ],
+    return Column(
+      children: [
+        DraftHeader(
+          state: state,
+          trailing: _HeaderTrailing(state: state, pollFailed: pollFailed),
         ),
-      ),
+        _Notice(state: state, error: error),
+        RosterStrip(roster: state.myRoster),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                  decoration: BoxDecoration(
+                    border: Border(right: BorderSide(color: ls.border)),
+                  ),
+                  child: BestAvailableTable(state: state),
+                ),
+              ),
+              SizedBox(
+                width: 316,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  child: PickTicker(
+                    picks: state.recentPicks,
+                    mySlot: state.clock.mySlot,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Mobile extends StatelessWidget {
+  const _Mobile({
+    required this.state,
+    required this.pollFailed,
+    required this.error,
+  });
+
+  final DraftState state;
+  final bool pollFailed;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    return Column(
+      children: [
+        DraftHeader(
+          state: state,
+          compact: true,
+          trailing: _HeaderTrailing(state: state, pollFailed: pollFailed),
+        ),
+        _Notice(state: state, error: error),
+        RosterStrip(roster: state.myRoster),
+        Expanded(
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+                  child: Text(
+                    'BEST AVAILABLE',
+                    style: LsText.microLabel.copyWith(color: ls.textSecondary),
+                  ),
+                ),
+              ),
+              BestAvailableList(state: state),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(LsSpacing.md),
+                  child: PickTicker(
+                    picks: state.recentPicks,
+                    mySlot: state.clock.mySlot,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

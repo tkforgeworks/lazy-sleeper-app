@@ -21,10 +21,14 @@ void main() {
     final base = loadDraftState();
     var calls = 0;
     var seq = base.recompute.seq;
+    var pick = base.clock.currentPick;
     final api = FakeLazySleeperApi(
       onState: (id, position, limit) async {
         calls++;
-        return base.copyWith(recompute: base.recompute.copyWith(seq: seq));
+        return base.copyWith(
+          recompute: base.recompute.copyWith(seq: seq),
+          clock: base.clock.copyWith(currentPick: pick),
+        );
       },
     );
     await pumpApp(
@@ -38,8 +42,8 @@ void main() {
     final live = _container(tester).read(draftLiveProvider);
     expect(live.phase, DraftLivePhase.live);
     expect(calls, 1, reason: 'first poll is immediate');
-    expect(find.textContaining('YOUR TURN'), findsOneWidget);
-    expect(find.textContaining('seq 76'), findsOneWidget);
+    expect(find.text('Pick 2.11'), findsOneWidget);
+    expect(find.text('YOU'), findsOneWidget);
 
     await tester.pump(_tick);
     await tester.pump();
@@ -51,6 +55,7 @@ void main() {
     );
 
     seq++;
+    pick++;
     await tester.pump(_tick);
     await tester.pump();
     expect(calls, 3);
@@ -58,7 +63,7 @@ void main() {
       identical(_container(tester).read(draftLiveProvider).state, live.state),
       isFalse,
     );
-    expect(find.textContaining('seq 77'), findsOneWidget);
+    expect(find.text('Pick 2.12'), findsOneWidget);
   });
 
   testWidgets('404 means the runner is not up; a later 200 recovers', (
@@ -95,7 +100,7 @@ void main() {
       _container(tester).read(draftLiveProvider).phase,
       DraftLivePhase.live,
     );
-    expect(find.textContaining('Live · drafting'), findsOneWidget);
+    expect(find.text('Pick 2.11'), findsOneWidget);
   });
 
   testWidgets('a failed poll keeps the last good state and says so', (
@@ -124,7 +129,8 @@ void main() {
     final live = _container(tester).read(draftLiveProvider);
     expect(live.phase, DraftLivePhase.error);
     expect(identical(live.state, good), isTrue);
-    expect(find.textContaining('showing the last good state'), findsOneWidget);
+    expect(find.text('poll failed'), findsOneWidget);
+    expect(find.textContaining('Showing the last good state'), findsOneWidget);
     expect(find.textContaining('Could not reach the API'), findsOneWidget);
   });
 
@@ -145,7 +151,7 @@ void main() {
       DraftLivePhase.idle,
     );
     expect(calls, 0);
-    expect(find.text('No draft id yet.'), findsOneWidget);
+    expect(find.textContaining('Give it a draft id'), findsOneWidget);
   });
 
   testWidgets('starting the runner polls right away', (tester) async {
@@ -173,7 +179,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.textContaining('Live · drafting'), findsOneWidget);
+    expect(find.text('Pick 2.11'), findsOneWidget);
   });
 }
 

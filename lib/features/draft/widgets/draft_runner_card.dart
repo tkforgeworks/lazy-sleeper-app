@@ -1,0 +1,322 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../api/models/draft.dart';
+import '../../../app/theme/ls_theme.dart';
+import '../../../app/widgets/atoms.dart';
+import '../draft_live_providers.dart';
+import '../draft_runner_providers.dart';
+
+/// Runner controls: draft id, Start/Stop, the last outcome, and the drafts
+/// the API knows about. Inline before the draft has state; in a dialog
+/// (see [showRunnerDialog]) once the Command Center is up.
+class DraftRunnerPanel extends ConsumerStatefulWidget {
+  const DraftRunnerPanel({super.key});
+
+  @override
+  ConsumerState<DraftRunnerPanel> createState() => _DraftRunnerPanelState();
+}
+
+class _DraftRunnerPanelState extends ConsumerState<DraftRunnerPanel> {
+  late final TextEditingController _id;
+
+  @override
+  void initState() {
+    super.initState();
+    _id = TextEditingController(text: ref.read(draftIdProvider));
+  }
+
+  @override
+  void dispose() {
+    _id.dispose();
+    super.dispose();
+  }
+
+  Future<void> _start() async {
+    final id = _id.text.trim();
+    if (id.isEmpty) return;
+    await ref.read(draftIdProvider.notifier).set(id);
+    await ref.read(draftRunnerProvider.notifier).start(id);
+    // The poller would catch up on its next tick; no need to wait for it.
+    await ref.read(draftLiveProvider.notifier).refresh();
+  }
+
+  Future<void> _stop() async {
+    final id = _id.text.trim();
+    if (id.isEmpty) return;
+    await ref.read(draftIdProvider.notifier).set(id);
+    await ref.read(draftRunnerProvider.notifier).stop(id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    final runner = ref.watch(draftRunnerProvider);
+    final known = ref.watch(knownDraftsProvider);
+    final busy = runner.isLoading;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RunnerCard(
+          title: 'DRAFT RUNNER',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Sleeper draft id, from the room URL '
+                '(sleeper.com/draft/nfl/<id>). Start before the room '
+                'opens: the pre-draft load takes a few seconds.',
+                style: LsText.aside.copyWith(color: ls.textSecondary),
+              ),
+              const SizedBox(height: LsSpacing.md),
+              TextField(
+                controller: _id,
+                enabled: !busy,
+                keyboardType: TextInputType.number,
+                style: LsText.dataCell.copyWith(color: ls.textPrimary),
+                decoration: _input(ls, 'draft id'),
+                onSubmitted: (_) => _start(),
+              ),
+              const SizedBox(height: LsSpacing.md),
+              Row(
+                children: [
+                  PrimaryButton(
+                    label: 'Start runner',
+                    onPressed: busy ? null : _start,
+                  ),
+                  const SizedBox(width: LsSpacing.sm),
+                  SecondaryButton(
+                    label: 'Stop',
+                    onPressed: busy ? null : _stop,
+                  ),
+                  const SizedBox(width: LsSpacing.md),
+                  if (busy)
+                    Text(
+                      'Talking to the API…',
+                      style: LsText.caption.copyWith(color: ls.textSecondary),
+                    ),
+                ],
+              ),
+              if (runner.value case final outcome?) ...[
+                const SizedBox(height: LsSpacing.md),
+                _Outcome(outcome),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: LsSpacing.lg),
+        RunnerCard(
+          title: 'KNOWN TO THE API',
+          child: known.when(
+            loading: () => Text(
+              'Asking…',
+              style: LsText.caption.copyWith(color: ls.textSecondary),
+            ),
+            error: (e, _) => Text(
+              'Could not list drafts: $e',
+              style: LsText.caption.copyWith(color: ls.errorText),
+            ),
+            data: (drafts) => drafts.isEmpty
+                ? Text(
+                    'None yet. The API forgets on restart; start one above.',
+                    style: LsText.aside.copyWith(color: ls.textSecondary),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final d in drafts)
+                        _KnownDraft(
+                          draft: d,
+                          onTap: () => setState(() => _id.text = d.draftId),
+                        ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _input(LsColors ls, String hint) => InputDecoration(
+    hintText: hint,
+    hintStyle: LsText.dataCell.copyWith(color: ls.textSecondary),
+    isDense: true,
+    border: OutlineInputBorder(
+      borderSide: BorderSide(color: ls.border),
+      borderRadius: BorderRadius.circular(LsRadius.card),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(color: ls.border),
+      borderRadius: BorderRadius.circular(LsRadius.card),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderSide: BorderSide(color: ls.purplePrimary),
+      borderRadius: BorderRadius.circular(LsRadius.card),
+    ),
+  );
+}
+
+/// The runner panel in a dialog, for when the Command Center owns the
+/// screen.
+Future<void> showRunnerDialog(BuildContext context) => showDialog<void>(
+  context: context,
+  builder: (context) {
+    final ls = context.ls;
+    return AlertDialog(
+      backgroundColor: ls.background,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: ls.border),
+        borderRadius: BorderRadius.circular(LsRadius.frame),
+      ),
+      title: Text(
+        'Draft runner',
+        style: LsText.drawerName.copyWith(color: ls.purplePrimary),
+      ),
+      content: const SizedBox(
+        width: 520,
+        child: SingleChildScrollView(child: DraftRunnerPanel()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Close',
+            style: LsText.button.copyWith(
+              fontSize: 13,
+              color: ls.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  },
+);
+
+/// Bordered card with a micro-label title.
+class RunnerCard extends StatelessWidget {
+  const RunnerCard({super.key, required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: ls.backgroundLight,
+        border: Border.all(color: ls.border),
+        borderRadius: BorderRadius.circular(LsRadius.card),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: LsText.microLabel.copyWith(color: ls.textSecondary),
+          ),
+          const SizedBox(height: LsSpacing.sm),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _Outcome extends StatelessWidget {
+  const _Outcome(this.outcome);
+
+  final RunnerOutcome outcome;
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    switch (outcome) {
+      case RunnerStarted(:final result):
+        final r = result;
+        final slot = r.mySlot == null
+            ? 'slot not assigned yet'
+            : 'slot ${r.mySlot}';
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LiveDot(
+              color: r.running ? ls.successPrimary : ls.errorPrimary,
+              label: r.alreadyRunning
+                  ? 'Runner was already up for ${r.draftId}'
+                  : 'Runner up for ${r.draftId}',
+            ),
+            const SizedBox(height: LsSpacing.xs),
+            Text(
+              'Season ${r.season} · $slot · ${r.picksMade} picks made · '
+              '${r.boardRows} board rows',
+              style: LsText.caption.copyWith(color: ls.textSecondary),
+            ),
+            if (r.mySlot == null) ...[
+              const SizedBox(height: LsSpacing.xs),
+              Text(
+                'Sleeper assigns draft_order late on mocks; the runner picks it '
+                'up mid-draft, or set MY_DRAFT_SLOT in the backend .env.',
+                style: LsText.aside.copyWith(color: ls.textSecondary),
+              ),
+            ],
+          ],
+        );
+      case RunnerStopped(:final result):
+        return LiveDot(
+          color: ls.textSecondary,
+          label: 'Runner stopped for ${result.draftId}',
+        );
+      case RunnerFailed(:final message):
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const StatusFlag('FAILED', severity: FlagSeverity.error),
+            const SizedBox(width: LsSpacing.sm),
+            Expanded(
+              child: Text(
+                message,
+                style: LsText.caption.copyWith(color: ls.errorText),
+              ),
+            ),
+          ],
+        );
+    }
+  }
+}
+
+class _KnownDraft extends StatelessWidget {
+  const _KnownDraft({required this.draft, required this.onTap});
+
+  final DraftSummary draft;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            LiveDot(
+              color: draft.running ? ls.successPrimary : ls.textSecondary,
+              label: draft.draftId,
+            ),
+            const Spacer(),
+            Text(
+              draft.running
+                  ? 'running · ${draft.season ?? '—'}'
+                  : 'stopped · ${draft.season ?? '—'}',
+              style: LsText.caption.copyWith(color: ls.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
