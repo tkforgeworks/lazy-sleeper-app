@@ -17,7 +17,8 @@ class TopNav extends StatelessWidget {
 
   static const height = 45.0;
 
-  final LsSection current;
+  /// Null when no section is open (Settings): no pill is selected.
+  final LsSection? current;
   final ValueChanged<LsSection> onSelect;
   final Widget? trailing;
 

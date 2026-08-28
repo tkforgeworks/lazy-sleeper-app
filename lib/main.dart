@@ -9,11 +9,16 @@ import 'app/app.dart';
 import 'app/log/app_log.dart';
 import 'app/log/log_file.dart';
 import 'app/prefs.dart';
+import 'app/settings/app_settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final log = await _openLog();
   final prefs = await SharedPreferences.getInstance();
+  // A saved log level wins over the build-time default.
+  if (prefs.getBool(AppSettings.verboseLogKey) case final verbose?) {
+    log.verbose = verbose;
+  }
   runApp(
     ProviderScope(
       overrides: [

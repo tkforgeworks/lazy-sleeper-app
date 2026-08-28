@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/lazy_sleeper_api.dart';
 import '../../api/models/board.dart';
-import '../../app/settings/api_address_dialog.dart';
+import '../../app/settings/settings_screen.dart';
 import '../../app/theme/ls_theme.dart';
 import '../../app/widgets/atoms.dart';
 import 'board_providers.dart';
@@ -28,7 +28,7 @@ class BoardScreen extends ConsumerWidget {
       error: (e, _) => _Error(
         error: e,
         onRetry: () => ref.invalidate(boardProvider),
-        onChangeAddress: () => showApiAddressDialog(context),
+        onChangeAddress: () => openSettings(context),
       ),
       data: (data) =>
           context.isDesktop ? _Desktop(meta: data.board) : const _Mobile(),

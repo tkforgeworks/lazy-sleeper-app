@@ -22,6 +22,7 @@ Future<void> pumpLive(
   Size size,
   DraftState state, {
   List<Override>? overrides,
+  Map<String, Object> prefs = const {},
 }) async {
   final deadline = state.clock.pickDeadline;
   final frozen = deadline?.subtract(const Duration(seconds: 95));
@@ -29,7 +30,7 @@ Future<void> pumpLive(
     tester,
     size,
     api: FakeLazySleeperApi(onState: (id, position, limit) async => state),
-    prefs: {DraftId.prefsKey: state.draftId},
+    prefs: {DraftId.prefsKey: state.draftId, ...prefs},
     overrides:
         overrides ??
         [if (frozen != null) nowProvider.overrideWithValue(() => frozen)],
