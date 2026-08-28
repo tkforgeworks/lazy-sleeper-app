@@ -238,6 +238,66 @@ class SegmentedTabs<T> extends StatelessWidget {
   }
 }
 
+/// Primary button: purplePrimary fill, onPurple ink, Pop 600/14, pad 11×22,
+/// r8; hover/press purpleDark. No elevation.
+class PrimaryButton extends StatelessWidget {
+  const PrimaryButton({super.key, required this.label, this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final ls = context.ls;
+    return FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: ls.purplePrimary,
+        foregroundColor: ls.onPurple,
+        disabledBackgroundColor: ls.purpleTint,
+        disabledForegroundColor: ls.textSecondary,
+        overlayColor: ls.purpleDark,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 11),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(LsRadius.card),
+        ),
+        textStyle: LsText.button,
+      ),
+      child: Text(label),
+    );
+  }
+}
+
+/// 7 dp status dot + JBM 400/11 secondary caption. Healthy = success,
+/// stale = warning, dead = error.
+class LiveDot extends StatelessWidget {
+  const LiveDot({super.key, required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      const SizedBox(width: 6),
+      Text(
+        label,
+        style: LsText.caption.copyWith(
+          fontSize: 11,
+          color: context.ls.textSecondary,
+        ),
+      ),
+    ],
+  );
+}
+
 /// Secondary button: purpleTint fill + 1px purplePrimary border, pad 6×14, r8.
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({super.key, required this.label, this.onPressed});

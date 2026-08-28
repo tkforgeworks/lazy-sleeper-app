@@ -7,7 +7,9 @@ never reimplements logic. Keep this file in sync as decisions land.
 ## Repo state (2026-08-28)
 
 - Flutter app exists (LS-39 increment 1): scaffold, theme, API client, Big Board screen, API-address
-  setting. Increment 2 (draft companion view polling `/draft/{id}/state`) is next, under the same ticket.
+  setting, and a first Draft screen that drives the backend draft runner (`GET /draft`,
+  `POST /draft/{id}/start|stop`; the draft id is remembered in prefs). Increment 2 (the live companion
+  view polling `/draft/{id}/state`) is next, under the same ticket.
 - Backend `lazy serve` runs on port **8000**; `/board` and `/draft/{id}/state` exist (v0.1.0). `/board`
   rows are untyped in its OpenAPI until LS-55, so `lib/api/models/board.dart` is transcribed by hand from
   `lazy-sleeper/docs/api/GUIDE.md`. Backend gap tickets LS-56..61 are filed; LS-56 (pick clock, on-the-clock

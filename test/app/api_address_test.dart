@@ -1,23 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lazy_sleeper_app/api/lazy_sleeper_api.dart';
-import 'package:lazy_sleeper_app/api/models/board.dart';
 import 'package:lazy_sleeper_app/api/providers.dart';
 import 'package:lazy_sleeper_app/app/app.dart';
 import 'package:lazy_sleeper_app/app/settings/api_address_dialog.dart';
 
 import '../support.dart';
-
-class _DownApi implements LazySleeperApi {
-  @override
-  Future<BoardResponse> board({
-    int? season,
-    String? provider,
-    String? position,
-    int? limit,
-  }) async => throw const ApiException('Could not reach the API: refused');
-}
 
 ProviderContainer _container(WidgetTester tester) =>
     ProviderScope.containerOf(tester.element(find.byType(LazySleeperApp)));
@@ -128,7 +116,7 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
-    await pumpApp(tester, desktopSize, api: _DownApi());
+    await pumpApp(tester, desktopSize, api: downApi());
     await tester.tap(find.text('Change address'));
     await tester.pumpAndSettle();
     expect(find.byType(ApiAddressDialog), findsOneWidget);

@@ -1,22 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:lazy_sleeper_app/api/lazy_sleeper_api.dart';
-import 'package:lazy_sleeper_app/api/models/board.dart';
 import 'package:lazy_sleeper_app/app/widgets/atoms.dart';
 import 'package:lazy_sleeper_app/features/board/board_view.dart';
 import 'package:lazy_sleeper_app/features/board/widgets/player_detail.dart';
 
 import '../../support.dart';
-
-class _DownApi implements LazySleeperApi {
-  @override
-  Future<BoardResponse> board({
-    int? season,
-    String? provider,
-    String? position,
-    int? limit,
-  }) async => throw const ApiException('Could not reach the API: refused');
-}
 
 void main() {
   group('desktop', () {
@@ -98,7 +86,7 @@ void main() {
   testWidgets('an unreachable API shows the error state with a retry', (
     tester,
   ) async {
-    await pumpApp(tester, desktopSize, api: _DownApi());
+    await pumpApp(tester, desktopSize, api: downApi());
 
     expect(find.text('No board.'), findsOneWidget);
     expect(find.widgetWithText(SecondaryButton, 'Try again'), findsOneWidget);

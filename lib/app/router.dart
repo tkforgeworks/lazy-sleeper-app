@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/board/board_screen.dart';
+import '../features/draft/draft_screen.dart';
 import 'shell/app_shell.dart';
 import 'shell/placeholder_screen.dart';
 
@@ -37,13 +38,7 @@ GoRouter buildRouter() => GoRouter(
       builder: (context, state, child) => AppShell(child: child),
       routes: [
         _section(LsSection.board, const BoardScreen()),
-        _section(
-          LsSection.draft,
-          const PlaceholderScreen(
-            title: 'Draft Command Center',
-            aside: 'Arrives with increment 2. The clock itself waits on LS-56.',
-          ),
-        ),
+        _section(LsSection.draft, const DraftScreen()),
         _section(
           LsSection.garage,
           const PlaceholderScreen(

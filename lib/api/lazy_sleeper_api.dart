@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import 'models/board.dart';
+import 'models/draft.dart';
 
 /// The lazy-sleeper FastAPI contract, as much of it as the app consumes.
 ///
@@ -16,6 +17,16 @@ abstract interface class LazySleeperApi {
     String? position,
     int? limit,
   });
+
+  /// `GET /draft`: drafts this API process knows about.
+  Future<List<DraftSummary>> drafts();
+
+  /// `POST /draft/{id}/start`: pre-draft load and start polling Sleeper.
+  /// Idempotent while the runner is alive (`alreadyRunning`).
+  Future<DraftStartOut> startDraft(String draftId, {int season = 2026});
+
+  /// `POST /draft/{id}/stop`: stop polling. 404 when it is not running.
+  Future<DraftStopOut> stopDraft(String draftId);
 }
 
 /// Anything that stopped a call from producing a parsed response: transport
@@ -44,33 +55,68 @@ class HttpLazySleeperApi implements LazySleeperApi {
     String? provider,
     String? position,
     int? limit,
-  }) => _get('/board', BoardResponse.fromJson, {
-    'season': season,
-    'provider': provider,
-    'position': position,
-    'limit': limit,
-  });
+  }) => _request(
+    'GET',
+    '/board',
+    query: {
+      'season': season,
+      'provider': provider,
+      'position': position,
+      'limit': limit,
+    },
+    parse: (body) => BoardResponse.fromJson(body as Map<String, dynamic>),
+  );
 
-  Future<T> _get<T>(
-    String path,
-    T Function(Map<String, dynamic>) parse,
-    Map<String, Object?> query,
-  ) async {
-    final Response<Map<String, dynamic>> response;
+  @override
+  Future<List<DraftSummary>> drafts() => _request(
+    'GET',
+    '/draft',
+    parse: (body) => [
+      for (final e in body as List<dynamic>)
+        DraftSummary.fromJson(e as Map<String, dynamic>),
+    ],
+  );
+
+  @override
+  Future<DraftStartOut> startDraft(String draftId, {int season = 2026}) =>
+      _request(
+        'POST',
+        '/draft/$draftId/start',
+        data: {'season': season},
+        parse: (body) => DraftStartOut.fromJson(body as Map<String, dynamic>),
+      );
+
+  @override
+  Future<DraftStopOut> stopDraft(String draftId) => _request(
+    'POST',
+    '/draft/$draftId/stop',
+    parse: (body) => DraftStopOut.fromJson(body as Map<String, dynamic>),
+  );
+
+  Future<T> _request<T>(
+    String method,
+    String path, {
+    Map<String, Object?> query = const {},
+    Object? data,
+    required T Function(Object body) parse,
+  }) async {
+    final Response<Object> response;
     try {
-      response = await _dio.get<Map<String, dynamic>>(
+      response = await _dio.request<Object>(
         path,
+        data: data,
         queryParameters: {
           for (final e in query.entries)
             if (e.value != null) e.key: e.value,
         },
+        options: Options(method: method),
       );
     } on DioException catch (e) {
       final status = e.response?.statusCode;
       throw ApiException(
         status == null
             ? 'Could not reach the API: ${e.message}'
-            : 'GET $path returned $status',
+            : '$method $path returned $status${_detail(e.response?.data)}',
         statusCode: status,
         cause: e,
       );
@@ -78,7 +124,7 @@ class HttpLazySleeperApi implements LazySleeperApi {
     final body = response.data;
     if (body == null) {
       throw ApiException(
-        'GET $path returned no body',
+        '$method $path returned no body',
         statusCode: response.statusCode,
       );
     }
@@ -86,10 +132,16 @@ class HttpLazySleeperApi implements LazySleeperApi {
       return parse(body);
     } on Object catch (e) {
       throw ApiException(
-        'GET $path: unexpected shape: $e',
+        '$method $path: unexpected shape: $e',
         statusCode: response.statusCode,
         cause: e,
       );
     }
+  }
+
+  /// FastAPI error bodies carry `{"detail": "..."}`; surface it when present.
+  static String _detail(Object? body) {
+    if (body is Map && body['detail'] is String) return ': ${body['detail']}';
+    return '';
   }
 }
