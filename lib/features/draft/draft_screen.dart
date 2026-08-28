@@ -4,12 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../api/models/draft_state.dart';
 import '../../app/theme/ls_theme.dart';
 import '../../app/widgets/atoms.dart';
+import 'draft_clock.dart';
 import 'draft_live_providers.dart';
+import 'draft_view.dart';
+import 'widgets/alert_cards.dart';
 import 'widgets/best_available.dart';
 import 'widgets/draft_header.dart';
 import 'widgets/draft_runner_card.dart';
+import 'widgets/panic_overlay.dart';
 import 'widgets/pick_ticker.dart';
+import 'widgets/recommendation_card.dart';
 import 'widgets/roster_strip.dart';
+import 'widgets/timer_block.dart';
 
 /// Draft Command Center: everything glanceable on draft night, zero
 /// navigation. Read-only — picks are made in the Sleeper app.
@@ -27,9 +33,45 @@ class DraftScreen extends ConsumerWidget {
     final state = live.state;
     if (state == null) return _Setup(live: live);
     final pollFailed = live.phase == DraftLivePhase.error;
-    return context.isDesktop
-        ? _Desktop(state: state, pollFailed: pollFailed, error: live.error)
-        : _Mobile(state: state, pollFailed: pollFailed, error: live.error);
+    final compact = !context.isDesktop;
+    final body = compact
+        ? _Mobile(state: state, pollFailed: pollFailed, error: live.error)
+        : _Desktop(state: state, pollFailed: pollFailed, error: live.error);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        body,
+        _PanicGate(state: state, compact: compact),
+      ],
+    );
+  }
+}
+
+/// Shows [PanicOverlay] at my turn with 30 s or less, unless it was
+/// dismissed for this pick. Watches the clock only while the draft has a
+/// deadline to count down.
+class _PanicGate extends ConsumerWidget {
+  const _PanicGate({required this.state, required this.compact});
+
+  final DraftState state;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final clock = state.clock;
+    if (!clock.myTurn || clock.pickDeadline == null) {
+      return const SizedBox.shrink();
+    }
+    final seconds = secondsRemaining(clock, ref.watch(clockNowProvider));
+    final dismissed = ref.watch(panicDismissedProvider) == clock.currentPick;
+    if (dismissed || !isPanic(clock, seconds)) return const SizedBox.shrink();
+    return PanicOverlay(
+      state: state,
+      seconds: seconds!,
+      compact: compact,
+      onDismiss: () =>
+          ref.read(panicDismissedProvider.notifier).dismiss(clock.currentPick),
+    );
   }
 }
 
@@ -161,6 +203,7 @@ class _Desktop extends StatelessWidget {
       children: [
         DraftHeader(
           state: state,
+          center: TimerBlock(clock: state.clock),
           trailing: _HeaderTrailing(state: state, pollFailed: pollFailed),
         ),
         _Notice(state: state, error: error),
@@ -175,7 +218,14 @@ class _Desktop extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border(right: BorderSide(color: ls.border)),
                   ),
-                  child: BestAvailableTable(state: state),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      RecommendationCard(state: state),
+                      const SizedBox(height: LsSpacing.md),
+                      Expanded(child: BestAvailableTable(state: state)),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(
@@ -185,9 +235,16 @@ class _Desktop extends StatelessWidget {
                     horizontal: 16,
                     vertical: 14,
                   ),
-                  child: PickTicker(
-                    picks: state.recentPicks,
-                    mySlot: state.clock.mySlot,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AlertsBlock(alerts: alertsFor(state)),
+                      const SizedBox(height: LsSpacing.md),
+                      PickTicker(
+                        picks: state.recentPicks,
+                        mySlot: state.clock.mySlot,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -218,6 +275,7 @@ class _Mobile extends StatelessWidget {
         DraftHeader(
           state: state,
           compact: true,
+          center: TimerBlock(clock: state.clock, compact: true),
           trailing: _HeaderTrailing(state: state, pollFailed: pollFailed),
         ),
         _Notice(state: state, error: error),
@@ -225,6 +283,29 @@ class _Mobile extends StatelessWidget {
         Expanded(
           child: CustomScrollView(
             slivers: [
+              if (alertsFor(state) case final alerts when alerts.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                      children: [
+                        for (final a in alerts)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: AlertChip(alert: a),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: RecommendationCard(state: state, compact: true),
+                ),
+              ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
