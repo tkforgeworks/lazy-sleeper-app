@@ -1,0 +1,27 @@
+# Release pipeline: consumes release-flutter.yml (in this repo until it is
+# promoted to tkforgeworks/.github). Every push to main or a release branch
+# runs it; the reusable workflow decides whether anything is releasable
+# (see its header): an RC version on v*/main → prerelease, a stable version
+# on main → release, anything else → no-op. Bump the version with
+# scripts/release/bump-version.{ps1,sh}.
+
+name: Release
+
+on:
+  push:
+    branches: [main, 'v*/main']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    uses: ./.github/workflows/release-flutter.yml
+    with:
+      ticket-prefix: LS
+      flutter-version: '3.47.2'
+    secrets: inherit
