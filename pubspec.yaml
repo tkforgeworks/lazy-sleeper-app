@@ -3,7 +3,7 @@ description: "Lazy Sleeper client: board, draft companion, garage and season vie
 publish_to: 'none'
 
 # Tracks the backend (lazy-sleeper) minor version it is built against.
-version: 0.1.0+1
+version: 0.1.0-rc.1+2
 
 environment:
   sdk: ^3.13.2
