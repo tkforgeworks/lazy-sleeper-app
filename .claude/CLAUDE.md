@@ -25,11 +25,17 @@ never reimplements logic. Keep this file in sync as decisions land.
   `release/`; see README "Releasing"). Inno Setup 6 is installed per-user on Tim's machine
   (`%LOCALAPPDATA%\Programs\Inno Setup 6`). The Android keystore + `android/key.properties` were generated
   2026-08-28 and are gitignored — **Tim must copy them into 1Password**; never regenerate a shipped key.
-  The installer is unsigned (SmartScreen warning documented). Left for Tim: open the release PR
-  `v0.1.0/main` → `main` and publish the `v0.1.0` GitHub release with the two artifacts. **Phase B** (org
-  `release-flutter.yml` + pubspec adapter for the rc/release scripts) is the untracked handoff
-  `C:\Code\.github\HANDOFF-flutter-version-branch-flow.md`, items 5–6; adopt it here when it exists. After
-  draft night: backend LS-58..61 (player detail, garage, season, ForgeModel knobs) and their screens.
+  The installer is unsigned (SmartScreen warning documented). **Phase B is done here too** (PR #14):
+  `.github/workflows/release-flutter.yml` is the `workflow_call` twin of the org's `release-electron.yml`
+  (check-release gate on pubspec version + branch + tag, org `release-notes.yml`, org `ci-flutter.yml` as the
+  quality gate, `build-windows` on `windows-latest` / `build-android` on `ubuntu-latest` from the
+  `ANDROID_KEYSTORE_*` repo secrets, draft→upload→publish); `release.yml` is the caller. It lives in this
+  repo as the **reference for the org standard** — promote it to `tkforgeworks/.github` verbatim and change
+  the caller's `uses:`. `scripts/release/bump-version.{ps1,sh}` is the pubspec adapter for
+  `rc-tag.js`/`release-tag.js`: base version from the `vX.Y.Z/main` branch name, `rc` → `-rc.N`, `final`
+  → stable + release PR, `+BUILD` bumped every time. Cut a release with `bump-version rc` on the release
+  branch, then `bump-version final`. After draft night: backend LS-58..61 (player detail, garage, season,
+  ForgeModel knobs) and their screens.
 
 - Flutter app (LS-39): scaffold, theme, API client, Big Board screen, API-address setting, draft runner
   controls (`GET /draft`, `POST /draft/{id}/start|stop`; the draft id is remembered in prefs), and the live
@@ -114,10 +120,9 @@ never reimplements logic. Keep this file in sync as decisions land.
   branches are `vX.Y.Z/LS-N-topic` off the release branch; PR into the release branch; self-merge allowed
   (0 required approvals). Never open a work PR against `main`. Release branches are unprotected today (org
   decision pending — see the handoff in `tkforgeworks/.github`), so check CI is green before merging.
-  No release workflow or version-bump scripts yet: the org's are npm/Electron-only; a Flutter release
-  pipeline is on the org handoff list, and this repo adopts it when it exists. Until then releases are
-  built locally with `scripts/release/*.ps1` (LS-73) and uploaded to the GitHub release by hand; bump
-  `pubspec.yaml` `version: X.Y.Z+BUILD` by hand (`+BUILD` = Android versionCode, monotonic).
+  Release pipeline: `.github/workflows/release.yml` → `release-flutter.yml` (tagless, org model; see README
+  "Releasing"). Never hand-edit the version or push tags: `scripts/release/bump-version.{ps1,sh} rc|final`
+  on the release branch does the bump/commit/push/PR and CI creates the tag when it publishes.
 - Commit subjects `LS-N: ...`, imperative, `Fix ...` for bug fixes (they become release-note lines).
 - CI contract from repo root: `dart format --output=none --set-exit-if-changed .`, `flutter analyze`,
   `flutter test`. `dart format` ignores analyzer excludes, so `.dart` files under `docs/` must stay

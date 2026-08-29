@@ -62,12 +62,34 @@ Models under `lib/api/models/` are generated (`freezed` + `json_serializable`); 
 
 ## Releasing
 
-There is no Flutter release pipeline in the org yet (the Electron one is npm/electron-builder only), so a
-release is built here and uploaded by hand. Artifacts land in `release/` (gitignored):
+The same tagless model as the org's Electron pipeline, done for Flutter in `.github/workflows/release-flutter.yml`
+(a `workflow_call` reusable, written here so it can move to `tkforgeworks/.github` unchanged; `release.yml` is the
+thin caller). Every push to `main` or a `v*/main` branch runs it and it decides for itself:
 
-```powershell
+| `pubspec.yaml` version | on branch | result |
+|---|---|---|
+| `X.Y.Z-rc.N+B` | `vX.Y.Z/main` | prerelease `vX.Y.Z-rc.N` |
+| `X.Y.Z+B` | `main` (via the release PR) | release `vX.Y.Z` |
+| anything else, or the tag exists | — | no-op |
+
+Version bumps are ordinary commits made by the bump helper (PowerShell and bash do the same thing):
+
+```sh
+scripts/release/bump-version.sh rc      # on v0.1.0/main: 0.1.0-rc.1+2, commit, push → CI publishes the prerelease
+scripts/release/bump-version.sh final   # 0.1.0+3, commit, push, opens the release PR into main → merge cuts v0.1.0
+```
+
+The base version comes from the release-branch name; `+BUILD` goes up on every bump. The tag is created
+server-side when CI publishes, so nothing here needs to bypass branch protection. CI's jobs: check-release
+(the gate above) → release notes (org `release-notes.yml`) + `ci-flutter.yml` as the quality gate → Windows
+installer on `windows-latest`, signed APK on `ubuntu-latest` (keystore from the `ANDROID_KEYSTORE_BASE64` /
+`ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` repo secrets) → draft release, upload, publish.
+
+The build scripts CI runs are the same ones you can run locally; artifacts land in `release/` (gitignored):
+
+```sh
 scripts/release/build-windows.ps1   # flutter build windows → release/lazy-sleeper-app-<v>-windows-x64-setup.exe + .zip
-scripts/release/build-android.ps1   # flutter build apk (signed) → release/lazy-sleeper-app-<v>-android.apk
+scripts/release/build-android.sh    # flutter build apk (signed) → release/lazy-sleeper-app-<v>-android.apk  (.ps1 too)
 ```
 
 - **Windows**: an [Inno Setup 6](https://jrsoftware.org/isinfo.php) installer (`winget install JRSoftware.InnoSetup`;
@@ -83,12 +105,9 @@ scripts/release/build-android.ps1   # flutter build apk (signed) → release/laz
 - **Icons**: `assets/brand/app_icon.png` (dark tile) and `app_icon_foreground.png` (adaptive foreground), both
   512×512 renders of the brand mark; `dart run flutter_launcher_icons` regenerates the Windows `.ico` and the
   Android mipmaps from them.
-- **Version**: `pubspec.yaml` `version: X.Y.Z+BUILD`. `X.Y.Z` names the installer and the release; `+BUILD` is
-  the Android `versionCode` and must go up on every APK that reaches a device. Bump it by hand until the org's
-  release scripts learn `pubspec.yaml`.
-
-To ship: build both, open the release PR `v0.1.0/main` → `main`, merge when CI is green, then create the
-GitHub release `v0.1.0` from `main` with the installer and APK attached.
+- **Version**: `pubspec.yaml` `version: X.Y.Z[-rc.N]+BUILD`. `X.Y.Z[-rc.N]` names the tag, installer and
+  release; `+BUILD` is the Android `versionCode` and must go up on every APK that reaches a device — the bump
+  helper does that.
 
 ## Design
 

@@ -9,15 +9,17 @@
   to run without it — a debug-signed APK is not a release. The version and
   build number come from pubspec.yaml (`version: X.Y.Z+BUILD`; BUILD is the
   Android versionCode and must go up on every APK that reaches a device).
+  Same behaviour as build-android.sh (keep them in step); forward slashes so
+  it also runs under pwsh on Linux/macOS.
 #>
 [CmdletBinding()]
 param()
 
 $ErrorActionPreference = 'Stop'
-$root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$root = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 Set-Location $root
 
-if (-not (Test-Path 'android\key.properties')) {
+if (-not (Test-Path 'android/key.properties')) {
     throw 'android/key.properties is missing. Run scripts/release/new-android-keystore.ps1 (or restore the keystore + key.properties from 1Password).'
 }
 
@@ -31,6 +33,6 @@ if ($LASTEXITCODE) { throw "flutter build apk failed ($LASTEXITCODE)" }
 $release = Join-Path $root 'release'
 New-Item -ItemType Directory -Force $release | Out-Null
 $apk = Join-Path $release "lazy-sleeper-app-$appVersion-android.apk"
-Copy-Item 'build\app\outputs\flutter-apk\app-release.apk' $apk -Force
+Copy-Item 'build/app/outputs/flutter-apk/app-release.apk' $apk -Force
 
 Get-Item $apk | Select-Object Name, @{ n = 'MB'; e = { [math]::Round($_.Length / 1MB, 1) } }
